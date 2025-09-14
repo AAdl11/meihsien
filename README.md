@@ -26,6 +26,9 @@ Open-source interactive ecosystem app promoting Tzu Chi San Francisco's compassi
 | Morning Light Mission Station | Elegant Action Power | Busy volunteers, mothers | Clarity, elegance, sense of control |
 | Hunter's Point | Happy Community Action | Families, students, residents | Support, empowerment, unity |
 
+## Notion 專案導引 / Project Guide
+點擊查看完整 Notion 頁面，包括模組細節、語錄庫和進度追蹤：[Notion 頁面](https://stealth-ozraraptor-79b.notion.site/Journey-of-Kindness-26de4a757424806aa4a3f88cfae61b27?pvs=143)
+
 #### Task Layer (任務層)
 | Module | Task Types | Reward Mechanism | Community Interaction |
 |--------|------------|------------------|-----------------------|
