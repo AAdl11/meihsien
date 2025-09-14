@@ -50,7 +50,7 @@ Incorporating Tzu Chi's essence: "This isn't a grand hall, but a cozy house wher
 ## Getting Started
 1. Clone: `git clone https://github.com/AAdl11/meihsien.git`
 2. Run: Open index.html in browser (no installs needed).
-3. Contribute: See [CONTRIBUTING.md](./CONTRIBUTING.md)—join like Musk's team to enhance AI, add voice/AR, or Tzu Chi stories for global impact.
+3. Contribute: See CONTRIBUTING.md—join like Musk's team to enhance AI, add voice/AR, or Tzu Chi stories for global impact. First, fill out the Resonance Questionnaire: [共創問卷](https://forms.gle/gJR4aDsk3FvFiYHV6)
 
 ## Mission & Invitation
 Like Musk linking ecosystems for humanity's future, this app unifies Tzu Chi's compassion: From inner peace to moral education to daily action to community cooperation. Let's co-create—contact hsu.meihsien@gmail.com or open Issues. All welcome to co-cultivate blessings!
