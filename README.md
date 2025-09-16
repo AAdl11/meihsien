@@ -1,61 +1,58 @@
-# 🔥 Hi, I'm MEI HSIEN HSU
+# 🌉 Journey of Kindness — Tzu Chi San Francisco
+> 「帝國的榮耀，不在疆土，而在心靈的共鳴。」
+> *The true empire is not of land, but of hearts in resonance.*
 
-## 🌱 I design tools with soul
-Aspiring member of the Kaiser Permanente nephrology research team, blending emotional literacy, AI, and science education to create meaningful, bilingual tools that support mental clarity and self-awareness.
+從舊金山出發，融合慈濟的善行精神、遊戲化設計與 AI 技術，我們打造一個讓新世代透過遊戲參與慈善、建立文化共鳴的數位平台。這是我（Mei Hsien Hsu）的masterpiece：從我的情感 literacy之旅（晨光儀式、心情園圃）擴展，旨在留下永恆的善意遺產，透過平台招募共創者並延伸個人故事——包括我作為腎臟移植者的轉折，從個人痛苦中蛻變為陪伴腎友的慈悲力量。
 
-## 🧠 What I'm Building
-* 🌞 Emotion App: A morning ritual app that transforms emotional awareness into daily clarity
-* 🌿 Mood Garden Module: Symbolic emotion plants that guide task prioritization and meditation
-* 📚 Open-source learning tools: Designed to teach, inspire, and grow with the community
+## 🌱 Hi, I'm Mei Hsien Hsu — Designing Tools with Soul
+As a Honors Transfer Program student at Las Positas College and dedicated Tzu Chi volunteer, I blend emotional literacy, AI, and science education to create meaningful, bilingual tools that support mental clarity and self-awareness. My journey began with a kidney transplant, turning pain into purpose: every two months, I join Tzu Chi Northern California's kidney support group, sharing stories of resilience to uplift patients and families. This emotional thread weaves through my work, reminding us that technology isn't just code—it's a bridge for compassion. This repo reflects my life's mission: making technology feel human—rooted in story, emotion, and everyday goodwill, extending narratives through collaborative platforms.
 
-## 🎯 My Mission
-To make technology feel human—rooted in story, emotion, and everyday life.
+### What I'm Building
+- **🌅 CompassionAI App**: An interactive journey promoting Tzu Chi's contributions through AI-gamified modules, where personal stories like mine inspire engagement.
+- **🌱 Mood Garden Integration**: Symbolic emotion plants guiding tasks and meditation, now fused with Tzu Chi themes.
+- **📚 Open-Source Ecosystem**: Tools to teach, inspire, and grow with the community, focusing on recruitment and story sharing.
 
-# Tzu Chi Bay Area Journey of Goodness (慈濟灣區善行之旅)
-[English] | [繁體中文](./README.zh-Hant.md)
+## 🧩 Cultural & Ethical Roots — Tzu Chi Bay Area Journey of Goodness
+本專案源自 **美國慈濟舊金山分會** 的「Journey of Goodness」願景，以數位互動與遊戲化任務，將慈濟的精神轉化為新世代可參與、可傳播的形式。強調陪伴而非幫助，培育感恩與永續，延伸個人故事——如我的移植經歷，轉化痛苦為力量，邀請你加入這份心靈共鳴。
 
-## About The Project
-Open-source interactive ecosystem app promoting Tzu Chi San Francisco's compassionate contributions via AI, gamification, and emotional literacy. Like Elon Musk's integrated empires, this one-stop hub fuses four stations: Sunset Clubhouse (spiritual re-growth), Humanities School (moral education, Chinese teaching + four dimensions eight virtues), Morning Light Station (elegant action), and Hunter's Point (happy community action, long-term cultivation of Chinatown scattered housing care and Liu Guiming Elementary food distribution). Hunter's Point, as San Francisco's forgotten corner, was once a Chinese shrimp fishing community (evicted in the 1930s for WWII military use), becoming a Black community post-war, facing poverty, unemployment, pollution, and environmental challenges (unemployment rate at 19%, far above San Francisco's average). Tzu Chi has been deeply involved since 2004, providing food distribution, educational counseling, and community care, illuminating this area in need of companionship. Users accumulate shared heart energy across modalities, unlocking rewards, discovering Tzu Chi's warmth, depth, and action—cultivating gratitude, participation, and co-cultivating global blessings. Invite contributors to iterate quickly, advance through failure, and build eternal impact!
+### 模組總覽 | Modules Overview
+| 模組 | 描述 | 核心價值 | AI 整合 (CS4 Alignment) |
+|------|------|----------|-------------------------|
+| 🌅 Morning Light | 晨間啟動儀式，設定當日意圖與情緒檢查 | 專注與清明 | Bayesian 情緒預測 (>85% 準確) |
+| 🍵 Spiritual Tea | 茶道互動，促進深度交流與靈性成長 | 文化連結 | 邏輯推理與決策樹 |
+| 🌱 Virtue Seeds | 美德種子任務，培養長期習慣與品格 | 品格養成 | MDPs 獎勵與對抗搜索 |
+| 🌸 Love Sprouting | 愛心行動，擴散善意至社群 | 社會影響 | BFS/DFS 資源優化 |
+| 🌀 Ataraxy Portico | 通用靜心之門，任務後觸發反思（暫停見證、呼吸釋放、哲學低語、回聲紀錄、重返之門） | 情緒復位與高維反思 | 智能代理與概率轉移 |
 
-### Tzu Chi Four-Part Interactive System Design (慈濟四部曲互動系統設計圖)
-#### Vision Layer (願景層)
-| Module Name | Theme Positioning | Target Audience | Emotional Goal |
-|-------------|-------------------|-----------------|----------------|
-| Sunset District Clubhouse | Spiritual Re-growth | Retired volunteers, elders | Comfort, companionship, re-activation |
-| Humanities School | Moral Education (Chinese teaching + four dimensions eight virtues) | Children, parents | Respect, gratitude, responsibility |
-| Morning Light Mission Station | Elegant Action Power | Busy volunteers, mothers | Clarity, elegance, sense of control |
-| Hunter's Point | Happy Community Action | Families, students, residents | Support, empowerment, unity |
+## 🎮 設計哲學
+- **Elon Musk 式快速疊代**：快速原型、測試、優化——7天MVP，證明執行力。
+- **Sid Meier 式策略設計**：每個選擇影響後續任務與社群互動。
+- **高維度文化格局**：遊戲是文化與靈性的橋樑，AI是放大善意的工具，融合我的生命經歷（從腎臟移植的感情牽動，到社區行動），延伸故事並招募夥伴，讓每位玩家感受到轉化的力量。
 
-## Notion 專案導引 / Project Guide
-點擊查看完整 Notion 頁面，包括模組細節、語錄庫和進度追蹤：[Notion 頁面](https://stealth-ozraraptor-79b.notion.site/Journey-of-Kindness-26de4a757424806aa4a3f88cfae61b27?pvs=143)
+## 🤝 共創邀請
+我們正在尋找：
+- 技術共創者（React、n8n、自動化、AI 整合）
+- 文化策展人（哲學、儀式設計、故事編寫）
+- 社群引路人（引導玩家互動與情感連結）
 
-#### Task Layer (任務層)
-| Module | Task Types | Reward Mechanism | Community Interaction |
-|--------|------------|------------------|-----------------------|
-| Sunset District Clubhouse | Jing Si matching, enzyme challenge, memory puzzle | Heart energy points, blessing cards | Share memories, mutual messages |
-| Humanities School | Four dimensions eight virtues scenarios (filial piety/ sibling harmony/ mutual love), Jing Si teaching stories | Moral points, family participation cards | Parent testimonials sharing, mutual story reviews |
-| Morning Light Mission Station | Priority sorting challenge, emotion mini-map, morning micro-meditation | Unlock "Morning Light Badge" | Weekly leaderboard, mutual encouragement |
-| Hunter's Point | Happy Campus simulation (Chinese/math tutoring), Happy Family care (domestic violence visits/support), Happy Community action (food distribution/vegetarian teaching/clinics), Chinatown scattered housing & Liu Guiming Elementary food distribution simulation | Aid points, school badges | Group relay, feedback shares |
+如果你被我的故事打動，歡迎分享你的經歷，一起織就這份善意網！
+📜 [填寫理念共鳴問卷](https://forms.gle/gJR4aDsk3FvFiYHV6)  
+📚 [查看 Notion 導引頁](https://stealth-ozraraptor-79b.notion.site/Journey-of-Kindness-26de4a757424806aa4a3f88cfae61b27?pvs=143)（內含更多感情故事延伸）
 
-#### Technology Layer (技術層)
-| Function Module | Tech Support | User Experience Design |
-|-----------------|--------------|-----------------------|
-| Task Generation | AI language model (based on Jing Si / four dimensions eight virtues, user context) | Daily push, voice interaction, graphic task cards |
-| Reward Mechanism | Points system, badge unlocks, story card collection | Visual progress bar, personal dashboard |
-| Community Interaction | Task sharing, message wall, voting mechanism | Easy onboarding, encouraging language, no-pressure engagement |
-
-## Social Language & Content Directions (社群語言與內容方向)
-Incorporating Tzu Chi's essence: "This isn't a grand hall, but a cozy house where you want to stay for tea and chat" (Sunset). "Kids learn not just Chinese, but how to be loving, polite, responsible people" (Humanities). "We're not helping—we're accompanying" (Hunter's Point). New: "Long-term care in Chinatown's scattered homes, like family support" and "Food distribution at Liu Guiming Elementary, empowering young hearts."
+## 📅 里程碑
+- **9/12**: README + Notion 架構完成
+- **9/13–9/14**: React Ataraxy Portico 頁面與觸發邏輯
+- **9/15**: n8n webhook + Notion API 整合
+- **9/16–9/17**: 語錄庫擴充 + AI 模擬
+- **9/18**: MVP 彩排
+- **9/19**: LPC MASA 迎新活動展示
 
 ## Getting Started
 1. Clone: `git clone https://github.com/AAdl11/meihsien.git`
 2. Run: Open index.html in browser (no installs needed).
-3. Contribute: See CONTRIBUTING.md—join like Musk's team to enhance AI, add voice/AR, or Tzu Chi stories for global impact. First, fill out the Resonance Questionnaire: [共創問卷](https://forms.gle/gJR4aDsk3FvFiYHV6)
+3. Contribute: See CONTRIBUTING.md—join like Musk's team to enhance AI, add voice/AR, or Tzu Chi stories for global impact.
 
-## Mission & Invitation
-Like Musk linking ecosystems for humanity's future, this app unifies Tzu Chi's compassion: From inner peace to moral education to daily action to community cooperation. Let's co-create—contact hsu.meihsien@gmail.com or open Issues. All welcome to co-cultivate blessings!
+## Contact
+Reach me via GitHub issues or hsu.meihsien@gmail.com
 
-## 💬 Let's Connect
-🌍 Location: California  
-🧭 Interests: Emotional literacy, bilingual design, open-source education  
-📫 Reach me via GitHub Issues or hsu.meihsien@gmail.com
+---
