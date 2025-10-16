@@ -58,28 +58,38 @@
 
         // Reflect function with user input and persistence
         function reflect() {
-            const input = document.getElementById('userInput').value.toLowerCase().trim();
+            let input = prompt("Describe your feelings:").toLowerCase().trim();
             if (!input) {
                 alert("Invalid description. Cannot be empty.");
-                return;
+                return false;
             }
 
             let aphorism = knowledgeBase.default;
             if (input.includes('stress')) aphorism = knowledgeBase.stressed;
             else if (input.includes('grate')) aphorism = knowledgeBase.grateful;
 
-            let prob = prompt("Enter probability/score (0-1):");
-            prob = parseFloat(prob);
-            if (isNaN(prob) || prob <= 0 || prob > 1) {
-                alert("Invalid score. Must be between 0 and 1.");
-                return;
+            let prob;
+            let attempts = 0;
+            const maxAttempts = 3;
+            while (attempts < maxAttempts) {
+                prob = prompt("Enter probability/score (0-1):");
+                prob = parseFloat(prob);
+                if (prob > 0 && prob <= 1 && !isNaN(prob)) break;
+                attempts++;
+                if (prob === null) return false; // Cancel exits
+                alert(`Invalid score. Must be between 0 and 1. ${maxAttempts - attempts} attempts left.`);
+            }
+            if (attempts >= maxAttempts) {
+                alert("Too many invalid attempts. Returning to menu.");
+                return false;
             }
 
             gameState.reflections.push({ prob: prob, desc: input });
-            gameState.averageScore = gameState.reflections.reduce((sum, ref) => sum + ref.prob, 0) / gameState.reflections.length;
+            gameState.averageScore = gameState.reflections.reduce((sum, ref) => sum + ref.prob, 0) / gameState.reflections.length || 0;
             document.getElementById('output').innerText = `Jing Si Aphorism: ${aphorism}\nPROB(${prob}) DESC(${input})`;
             saveProgress();
             showProgress();
+            return true; // Ensure return after success
         }
 
         // Show all progress
@@ -93,14 +103,14 @@
 
         // Search aphorisms by substring
         function searchAphorisms() {
-            let searchStr = prompt("Enter search string:").toLowerCase();
+            let searchStr = prompt("Enter search string:").toLowerCase().trim();
             let results = Object.entries(knowledgeBase).filter(([key, value]) => value.toLowerCase().includes(searchStr));
             document.getElementById('output').innerText = results.length ? results.map(([_, val]) => val).join("\n") : "No matches.";
         }
 
         // Filter reflections by probability threshold
         function filterByProb() {
-            let threshold = parseFloat(prompt("Enter probability/score threshold (0-1):"));
+            let threshold = parseFloat(prompt("Enter probability/score threshold (0-1):").trim());
             if (isNaN(threshold) || threshold <= 0 || threshold > 1) {
                 alert("Invalid threshold.");
                 return;
@@ -109,19 +119,25 @@
             document.getElementById('output').innerText = filtered.length ? filtered.map(ref => `PROB(${ref.prob}) DESC(${ref.desc})`).join("\n") : "No matches.";
         }
 
-        // Main menu loop
+        // Main menu loop with controlled flow
         function showMenu() {
             while (true) {
-                let choice = prompt("Journey Menu:\n1. Show All Progress\n2. Advance/Reflect\n3. Search Aphorisms\n4. Filter by Probability\n5. Save and Exit\nEnter your option:");
-                if (choice === "1") showProgress();
-                else if (choice === "2") reflect();
-                else if (choice === "3") searchAphorisms();
-                else if (choice === "4") filterByProb();
-                else if (choice === "5") {
+                let choice = prompt("Journey Menu:\n1. Show All Progress\n2. Advance/Reflect\n3. Search Aphorisms\n4. Filter by Probability\n5. Save and Exit\nEnter your option:").trim();
+                if (choice === "1") {
+                    showProgress();
+                } else if (choice === "2") {
+                    reflect(); // Simplified call, rely on reflect's internal loop
+                } else if (choice === "3") {
+                    searchAphorisms();
+                } else if (choice === "4") {
+                    filterByProb();
+                } else if (choice === "5") {
                     saveProgress();
                     alert("Progress saved. Goodbye!");
                     break;
-                } else alert("Invalid option. Try again.");
+                } else {
+                    alert("Invalid option. Try again.");
+                }
             }
         }
 
