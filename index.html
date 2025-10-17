@@ -1,31 +1,50 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Journey of Kindness</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        h1 { text-align: center; }
+        #input { width: 100%; padding: 10px; margin-bottom: 10px; }
+        button { padding: 10px 20px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background: #45a049; }
+        #output, #progress { margin-top: 20px; padding: 15px; background: #f9f9f9; border: 1px solid #ddd; white-space: pre-wrap; }
+    </style>
 </head>
 <body>
     <h1>Welcome to Journey of Kindness</h1>
-    <p>Describe your feelings: <input type="text" id="userInput"></p>
-    <button onclick="reflect()">Reflect</button>
+    <p>Enter your input here: <input type="text" id="input"></p>
+    <button id="submitButton" onclick="handleInput()">Submit</button>
     <div id="output"></div>
     <div id="progress"></div>
 
     <script>
-        // Knowledge base for aphorisms
+        // Knowledge base for aphorisms (expanded for better gameplay)
         const knowledgeBase = {
             stressed: "Deep breath release stress. Calm your mind, and clarity will follow.",
             grateful: "Gratitude opens the door to abundance. Cherish what you have.",
+            sad: "Let go of one thought, and all becomes free.",
+            happy: "Joy is the simplest form of gratitude.",
+            anxious: "Inhale clarity, exhale noise.",
             default: "Witness the moment without judgment. Carry this peace forward."
         };
 
-        // Game state object (local scope, no globals)
+        // Game state object
         let gameState = {
             currentStage: "Inner Exploration",
             reflections: [],
             averageScore: 0
         };
+
+        // Current mode to manage input states (e.g., menu, emotion, prob, etc.)
+        let currentMode = 'menu'; // Starts with menu
+        let tempData = {}; // Temporary storage for multi-step inputs (e.g., emotion before prob)
+
+        // Menu text constant
+        const menuText = "Journey Menu:\n1. Show All Progress\n2. Advance/Reflect\n3. Search Aphorisms\n4. Filter by Probability\n5. Save and Exit\nEnter your option:";
 
         // Load progress from localStorage
         function loadProgress() {
@@ -33,10 +52,10 @@
             if (savedState) {
                 try {
                     gameState = JSON.parse(savedState);
-                    document.getElementById('output').innerText = "Welcome back! Resumed at Stage: " + gameState.currentStage;
+                    displayMessage("Welcome back! Resumed at Stage: " + gameState.currentStage + "\n\n" + menuText);
                     showProgress();
                 } catch (error) {
-                    alert("Invalid saved data. Resetting progress.");
+                    displayMessage("Invalid saved data. Resetting progress.\n\n" + menuText);
                     initializeGame();
                 }
             } else {
@@ -48,7 +67,8 @@
         function initializeGame() {
             gameState = { currentStage: "Inner Exploration", reflections: [], averageScore: 0 };
             saveProgress();
-            document.getElementById('output').innerText = "New journey started.";
+            displayMessage("New journey started.\n\n" + menuText);
+            showProgress();
         }
 
         // Save progress to localStorage
@@ -56,93 +76,144 @@
             localStorage.setItem('journeyState', JSON.stringify(gameState));
         }
 
-        // Reflect function with user input and persistence
-        function reflect() {
-            let input = prompt("Describe your feelings:").toLowerCase().trim();
-            if (!input) {
-                alert("Invalid description. Cannot be empty.");
-                return false;
-            }
-
-            let aphorism = knowledgeBase.default;
-            if (input.includes('stress')) aphorism = knowledgeBase.stressed;
-            else if (input.includes('grate')) aphorism = knowledgeBase.grateful;
-
-            let prob;
-            let attempts = 0;
-            const maxAttempts = 3;
-            while (attempts < maxAttempts) {
-                prob = prompt("Enter probability/score (0-1):");
-                prob = parseFloat(prob);
-                if (prob > 0 && prob <= 1 && !isNaN(prob)) break;
-                attempts++;
-                if (prob === null) return false; // Cancel exits
-                alert(`Invalid score. Must be between 0 and 1. ${maxAttempts - attempts} attempts left.`);
-            }
-            if (attempts >= maxAttempts) {
-                alert("Too many invalid attempts. Returning to menu.");
-                return false;
-            }
-
-            gameState.reflections.push({ prob: prob, desc: input });
-            gameState.averageScore = gameState.reflections.reduce((sum, ref) => sum + ref.prob, 0) / gameState.reflections.length || 0;
-            document.getElementById('output').innerText = `Jing Si Aphorism: ${aphorism}\nPROB(${prob}) DESC(${input})`;
-            saveProgress();
-            showProgress();
-            return true; // Ensure return after success
+        // Display message in output div
+        function displayMessage(msg) {
+            document.getElementById('output').innerText = msg;
         }
 
-        // Show all progress
-        function showProgress() {
-            let progressText = "Progress:\n";
+        // Get progress text
+        function getProgressText() {
+            let progressText = "Progress (Average Score: " + gameState.averageScore.toFixed(2) + "):\n";
             gameState.reflections.forEach(ref => {
-                progressText += `PROB(${ref.prob}) DESC(${ref.desc})\n`;
+                progressText += `PROB(${ref.prob.toFixed(2)}) DESC(${ref.desc})\n`;
             });
-            document.getElementById('progress').innerText = progressText || "No progress yet.";
+            return progressText || "No progress yet.";
+        }
+
+        // Show all progress in progress div
+        function showProgress() {
+            document.getElementById('progress').innerText = getProgressText();
+        }
+
+        // Handle main input submission
+        function handleInput() {
+            if (currentMode === 'ended') {
+                displayMessage("Game ended. Please refresh to restart.");
+                return;
+            }
+
+            let userInput = document.getElementById('input').value.trim().toLowerCase();
+            document.getElementById('input').value = ''; // Clear input after submission
+
+            if (!userInput) {
+                displayMessage("Input cannot be empty. Try again.\n\n" + menuText);
+                currentMode = 'menu';
+                return;
+            }
+
+            switch (currentMode) {
+                case 'menu':
+                    handleMenuChoice(userInput);
+                    break;
+                case 'emotion':
+                    handleEmotionInput(userInput);
+                    break;
+                case 'prob':
+                    handleProbInput(userInput);
+                    break;
+                case 'search':
+                    handleSearchInput(userInput);
+                    break;
+                case 'threshold':
+                    handleThresholdInput(userInput);
+                    break;
+            }
+        }
+
+        // Handle menu choices
+        function handleMenuChoice(choice) {
+            if (choice === '1') {
+                showProgress();
+                displayMessage(getProgressText() + "\n\n" + menuText);
+                currentMode = 'menu';
+            } else if (choice === '2') {
+                currentMode = 'emotion';
+                displayMessage("Describe your feelings:");
+            } else if (choice === '3') {
+                currentMode = 'search';
+                displayMessage("Enter search string for aphorisms:");
+            } else if (choice === '4') {
+                currentMode = 'threshold';
+                displayMessage("Enter probability/score threshold (0-1):");
+            } else if (choice === '5') {
+                saveProgress();
+                displayMessage("Progress saved. Goodbye! Refresh to restart.");
+                currentMode = 'ended';
+                document.getElementById('input').disabled = true;
+                document.getElementById('submitButton').disabled = true;
+            } else {
+                displayMessage("Invalid option. Try again.\n\n" + menuText);
+                currentMode = 'menu';
+            }
+        }
+
+        // Handle emotion input for reflect
+        function handleEmotionInput(input) {
+            tempData.emotion = input;
+            let aphorismKey = Object.keys(knowledgeBase).find(key => input.includes(key)) || 'default';
+            tempData.aphorism = knowledgeBase[aphorismKey];
+            currentMode = 'prob';
+            displayMessage(`Jing Si Aphorism: ${tempData.aphorism}\nNow enter probability/score (0-1):`);
+        }
+
+        // Handle probability input with validation (no loop, but allow retries via input)
+        function handleProbInput(input) {
+            let prob = parseFloat(input);
+            if (isNaN(prob) || prob <= 0 || prob > 1) {
+                displayMessage("Invalid score. Must be between 0 and 1. Try again.\nNow enter probability/score (0-1):");
+                return; // Stay in prob mode for retry
+            }
+
+            gameState.reflections.push({ prob: prob, desc: tempData.emotion });
+            gameState.averageScore = gameState.reflections.reduce((sum, ref) => sum + ref.prob, 0) / gameState.reflections.length || 0;
+
+            // Advance stage if reflections reach certain milestones (optimization: add progression logic)
+            if (gameState.reflections.length % 3 === 0) {
+                gameState.currentStage = "Deeper Clarity"; // Example progression
+            }
+
+            let addedMsg = `Reflection added: PROB(${prob.toFixed(2)}) DESC(${tempData.emotion})\nAverage Score: ${gameState.averageScore.toFixed(2)}`;
+            displayMessage(addedMsg + "\n\n" + menuText);
+            saveProgress();
+            showProgress();
+            tempData = {}; // Clear temp
+            currentMode = 'menu'; // Back to menu
         }
 
         // Search aphorisms by substring
-        function searchAphorisms() {
-            let searchStr = prompt("Enter search string:").toLowerCase().trim();
+        function handleSearchInput(searchStr) {
             let results = Object.entries(knowledgeBase).filter(([key, value]) => value.toLowerCase().includes(searchStr));
-            document.getElementById('output').innerText = results.length ? results.map(([_, val]) => val).join("\n") : "No matches.";
+            let msg = results.length ? results.map(([_, val]) => val).join("\n") : "No matches.";
+            displayMessage("Search Results:\n" + msg + "\n\n" + menuText);
+            currentMode = 'menu';
         }
 
         // Filter reflections by probability threshold
-        function filterByProb() {
-            let threshold = parseFloat(prompt("Enter probability/score threshold (0-1):").trim());
+        function handleThresholdInput(input) {
+            let threshold = parseFloat(input);
             if (isNaN(threshold) || threshold <= 0 || threshold > 1) {
-                alert("Invalid threshold.");
-                return;
+                displayMessage("Invalid threshold. Try again.\nEnter probability/score threshold (0-1):");
+                return; // Stay in threshold mode
             }
             let filtered = gameState.reflections.filter(ref => ref.prob >= threshold);
-            document.getElementById('output').innerText = filtered.length ? filtered.map(ref => `PROB(${ref.prob}) DESC(${ref.desc})`).join("\n") : "No matches.";
+            let msg = filtered.length ? filtered.map(ref => `PROB(${ref.prob.toFixed(2)}) DESC(${ref.desc})`).join("\n") : "No matches.";
+            displayMessage("Filtered Results:\n" + msg + "\n\n" + menuText);
+            currentMode = 'menu';
         }
 
-        // Main menu loop with controlled flow
-        function showMenu() {
-            while (true) {
-                let choice = prompt("Journey Menu:\n1. Show All Progress\n2. Advance/Reflect\n3. Search Aphorisms\n4. Filter by Probability\n5. Save and Exit\nEnter your option:").trim();
-                if (choice === "1") {
-                    showProgress();
-                } else if (choice === "2") {
-                    reflect(); // Simplified call, rely on reflect's internal loop
-                } else if (choice === "3") {
-                    searchAphorisms();
-                } else if (choice === "4") {
-                    filterByProb();
-                } else if (choice === "5") {
-                    saveProgress();
-                    alert("Progress saved. Goodbye!");
-                    break;
-                } else {
-                    alert("Invalid option. Try again.");
-                }
-            }
-        }
-
-        // Load progress and start menu on page load
-        window.onload = function() { loadProgress(); showMenu(); };
+        // Load progress and start on page load
+        window.onload = loadProgress;
     </script>
 </body>
 </html>
+```
