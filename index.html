@@ -8,394 +8,352 @@
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in { animation: fadeIn 0.8s ease-out; }
+  </style>
 </head>
 <body>
   <div id="root"></div>
   <script type="text/babel">
-    // import React, { useState, useEffect } from 'react';
-import { Heart, Package, Home, Coffee, Users, Flower2 } from 'lucide-react';
+    const { useState, useEffect } = React;
 
-const JourneyOfKindness = () => {
-  const [stage, setStage] = useState(0);
-  const [emotion, setEmotion] = useState('');
-  const [gridPosition, setGridPosition] = useState({ x: 0, y: 0 });
-  const [deliveries, setDeliveries] = useState(0);
-  const [hanoiTowers, setHanoiTowers] = useState({
-    A: [3, 2, 1],
-    B: [],
-    C: []
-  });
-  const [selectedTower, setSelectedTower] = useState(null);
-  const [moves, setMoves] = useState(0);
-  const [message, setMessage] = useState('');
+    const JourneyOfKindness = () => {
+      const [stage, setStage] = useState(0);
+      const [emotion, setEmotion] = useState('');
+      const [gridPosition, setGridPosition] = useState({ x: 0, y: 0 });
+      const [deliveries, setDeliveries] = useState(0);
+      const [hanoiTowers, setHanoiTowers] = useState({
+        A: [3, 2, 1],
+        B: [],
+        C: []
+      });
+      const [selectedTower, setSelectedTower] = useState(null);
+      const [moves, setMoves] = useState(0);
+      const [message, setMessage] = useState('');
 
-  // Stage 0: Welcome
-  const WelcomeScreen = () => (
-    <div className="min-h-screen bg-gradient-to-b from-blue-900 via-purple-800 to-orange-500 flex items-center justify-center p-8 text-white">
-      <div className="max-w-2xl text-center space-y-8 animate-fade-in">
-        <div className="text-6xl mb-4">🌅</div>
-        <h1 className="text-5xl font-bold mb-4">Journey of Kindness</h1>
-        <h2 className="text-3xl mb-8">慈悲之旅</h2>
-        <div className="bg-black/30 p-6 rounded-lg backdrop-blur">
-          <p className="text-xl leading-relaxed italic">
-            在舊金山，每天有這樣一群人，<br/>
-            用愛心點亮社區的每個角落。<br/><br/>
-            今天，你將體驗慈濟志工的一天，<br/>
-            從內心覺醒到社區服務。<br/><br/>
-            In San Francisco, there are people<br/>
-            who light up every corner with love.<br/><br/>
-            Today, you will experience a day<br/>
-            in the life of a Tzu Chi volunteer.
-          </p>
-        </div>
-        <div className="space-y-4">
-          <p className="text-lg">你今天感覺如何？/ How are you feeling today?</p>
-          <input
-            type="text"
-            value={emotion}
-            onChange={(e) => setEmotion(e.target.value)}
-            placeholder="輸入你的情緒 / Enter your emotion..."
-            className="w-full px-6 py-3 rounded-full text-black text-center text-lg"
-          />
-          <button
-            onClick={() => emotion && setStage(1)}
-            className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform"
-          >
-            開始旅程 / Begin Journey
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Stage 1: Grid World - 志工送愛心
-  const Stage1 = () => {
-    const gridSize = 5;
-    const homes = [[4, 1], [2, 3], [4, 4], [1, 4], [3, 0]];
-    
-    const moveVolunteer = (dx, dy) => {
-      const newX = Math.max(0, Math.min(gridSize - 1, gridPosition.x + dx));
-      const newY = Math.max(0, Math.min(gridSize - 1, gridPosition.y + dy));
-      setGridPosition({ x: newX, y: newY });
-      
-      // Check if reached a home
-      const reachedHome = homes.find(([x, y]) => x === newX && y === newY);
-      if (reachedHome && deliveries < 5) {
-        setDeliveries(deliveries + 1);
-        setMessage('物資送達！/ Delivery made! 🎁');
-        setTimeout(() => setMessage(''), 2000);
-      }
-    };
-
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-100 to-blue-100 p-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-4xl font-bold text-green-800 mb-4">
-              Stage 1: 早晨覺醒 / Morning Light
-            </h2>
-            <p className="text-xl text-gray-700">
-              送物資到 Hunters Point 的 5 個家庭<br/>
-              Deliver supplies to 5 families in Hunters Point
-            </p>
-            <div className="mt-4 text-2xl font-bold text-green-600">
-              送達: {deliveries}/5 deliveries
+      const WelcomeScreen = () => (
+        <div className="min-h-screen bg-gradient-to-b from-blue-900 via-purple-800 to-orange-500 flex items-center justify-center p-8 text-white">
+          <div className="max-w-2xl text-center space-y-8 animate-fade-in">
+            <div className="text-6xl mb-4">🌅</div>
+            <h1 className="text-5xl font-bold mb-4">Journey of Kindness</h1>
+            <h2 className="text-3xl mb-8">慈悲之旅</h2>
+            <div className="bg-black/30 p-6 rounded-lg backdrop-blur">
+              <p className="text-xl leading-relaxed">
+                在舊金山，每天有這樣一群人，用愛心點亮社區的每個角落。<br/><br/>
+                今天，你將體驗慈濟志工的一天，從內心覺醒到社區服務。<br/><br/>
+                In San Francisco, there are people who light up every corner with love.<br/><br/>
+                Today, you will experience a day in the life of a Tzu Chi volunteer.
+              </p>
             </div>
-            {message && <div className="mt-2 text-lg text-green-600 font-bold">{message}</div>}
-          </div>
-
-          {/* Grid */}
-          <div className="bg-white p-8 rounded-xl shadow-2xl mb-6">
-            <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${gridSize}, 1fr)` }}>
-              {Array.from({ length: gridSize * gridSize }).map((_, idx) => {
-                const x = Math.floor(idx / gridSize);
-                const y = idx % gridSize;
-                const isVolunteer = gridPosition.x === x && gridPosition.y === y;
-                const isHome = homes.some(([hx, hy]) => hx === x && hy === y);
-                
-                return (
-                  <div
-                    key={idx}
-                    className={`aspect-square flex items-center justify-center text-4xl rounded-lg transition-all ${
-                      isVolunteer ? 'bg-green-400 scale-110' : isHome ? 'bg-yellow-200' : 'bg-gray-100'
-                    }`}
-                  >
-                    {isVolunteer ? '💚' : isHome ? '🏠' : ''}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Controls */}
-          <div className="flex flex-col items-center gap-4">
-            <div className="flex gap-4">
-              <button onClick={() => moveVolunteer(-1, 0)} className="bg-blue-500 text-white px-6 py-3 rounded-lg text-xl hover:bg-blue-600">⬆️ 上</button>
-            </div>
-            <div className="flex gap-4">
-              <button onClick={() => moveVolunteer(0, -1)} className="bg-blue-500 text-white px-6 py-3 rounded-lg text-xl hover:bg-blue-600">⬅️ 左</button>
-              <button onClick={() => moveVolunteer(0, 1)} className="bg-blue-500 text-white px-6 py-3 rounded-lg text-xl hover:bg-blue-600">➡️ 右</button>
-            </div>
-            <div className="flex gap-4">
-              <button onClick={() => moveVolunteer(1, 0)} className="bg-blue-500 text-white px-6 py-3 rounded-lg text-xl hover:bg-blue-600">⬇️ 下</button>
-            </div>
-          </div>
-
-          {deliveries >= 5 && (
-            <div className="mt-8 text-center">
-              <div className="bg-green-100 p-6 rounded-xl mb-4">
-                <p className="text-xl text-green-800">
-                  物資送達了！志工的一天才剛開始。<br/>
-                  來到慈濟人文學校，讓我們在茶道中學習禮儀與靜思。<br/><br/>
-                  Deliveries complete! The volunteer's day has just begun.<br/>
-                  Let's learn etiquette and reflection through tea ceremony.
-                </p>
-              </div>
+            <div className="space-y-4">
+              <p className="text-lg">你今天感覺如何？/ How are you feeling today?</p>
+              <input
+                type="text"
+                value={emotion}
+                onChange={(e) => setEmotion(e.target.value)}
+                placeholder="輸入你的情緒 / Enter your emotion..."
+                className="w-full px-6 py-3 rounded-full text-black text-center text-lg"
+              />
               <button
-                onClick={() => setStage(2)}
-                className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform"
+                onClick={() => emotion && setStage(1)}
+                className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform"
               >
-                繼續 / Continue →
+                開始旅程 / Begin Journey
               </button>
             </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // Stage 2: Pancake Hanoi - 茶道人文
-  const Stage2 = () => {
-    const pancakeNames = {
-      1: { name: '感恩', en: 'Gratitude', quote: '感恩不僅是一種禮貌，更是一種內心修養 / Gratitude is not just politeness, but inner cultivation' },
-      2: { name: '尊重', en: 'Respect', quote: '尊重生命，珍惜當下 / Respect life, cherish the present' },
-      3: { name: '愛', en: 'Love', quote: '愛是付出，不求回報 / Love is giving without expectation' }
-    };
-
-    const colors = {
-      1: 'from-yellow-300 to-yellow-400',
-      2: 'from-orange-300 to-orange-400',
-      3: 'from-red-300 to-red-400'
-    };
-
-    const handleTowerClick = (tower) => {
-      if (selectedTower === null) {
-        if (hanoiTowers[tower].length > 0) {
-          setSelectedTower(tower);
-        }
-      } else {
-        if (selectedTower !== tower) {
-          const fromDisc = hanoiTowers[selectedTower][hanoiTowers[selectedTower].length - 1];
-          const toDisc = hanoiTowers[tower][hanoiTowers[tower].length - 1];
-          
-          if (!toDisc || fromDisc < toDisc) {
-            const newTowers = { ...hanoiTowers };
-            const disc = newTowers[selectedTower].pop();
-            newTowers[tower].push(disc);
-            setHanoiTowers(newTowers);
-            setMoves(moves + 1);
-            setMessage(pancakeNames[disc].quote);
-            setTimeout(() => setMessage(''), 4000);
-          }
-        }
-        setSelectedTower(null);
-      }
-    };
-
-    const isComplete = hanoiTowers.C.length === 3 && hanoiTowers.C[0] === 3 && hanoiTowers.C[2] === 1;
-
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8">
-            <div className="text-6xl mb-4">🍵</div>
-            <h2 className="text-4xl font-bold text-green-800 mb-4">
-              Stage 2: 茶道人文 / Spiritual Tea Ceremony
-            </h2>
-            <p className="text-xl text-gray-700 mb-4">
-              慈濟人文學校 - 堆疊美德煎餅<br/>
-              Tzu Chi Academy - Stack the virtue pancakes
-            </p>
-            <div className="text-lg text-gray-600">
-              移動次數 / Moves: {moves}
-            </div>
-            {message && (
-              <div className="mt-4 bg-yellow-50 p-4 rounded-lg border-2 border-yellow-300">
-                <p className="text-lg text-gray-800 italic">{message}</p>
-              </div>
-            )}
           </div>
+        </div>
+      );
 
-          <div className="bg-white p-8 rounded-xl shadow-2xl">
-            <div className="grid grid-cols-3 gap-8">
-              {['A', 'B', 'C'].map((tower) => (
-                <div key={tower} className="flex flex-col items-center">
-                  <div className="text-2xl font-bold mb-4 text-gray-700">
-                    {tower === 'A' && '茶座 A'}
-                    {tower === 'B' && '茶座 B'}
-                    {tower === 'C' && '茶座 C'}
-                  </div>
-                  <div
-                    onClick={() => handleTowerClick(tower)}
-                    className={`w-full h-80 bg-gradient-to-t from-amber-700 to-amber-600 rounded-lg flex flex-col-reverse items-center justify-start p-4 cursor-pointer hover:shadow-lg transition-all ${
-                      selectedTower === tower ? 'ring-4 ring-green-500' : ''
-                    }`}
-                  >
-                    {hanoiTowers[tower].map((disc, idx) => (
+      const Stage1 = () => {
+        const gridSize = 5;
+        const homes = [[4, 1], [2, 3], [4, 4], [1, 4], [3, 0]];
+        
+        const moveVolunteer = (dx, dy) => {
+          const newX = Math.max(0, Math.min(gridSize - 1, gridPosition.x + dx));
+          const newY = Math.max(0, Math.min(gridSize - 1, gridPosition.y + dy));
+          setGridPosition({ x: newX, y: newY });
+          
+          const reachedHome = homes.find(([x, y]) => x === newX && y === newY);
+          if (reachedHome && deliveries < 5) {
+            setDeliveries(deliveries + 1);
+            setMessage('物資送達！/ Delivery made! 🎁');
+            setTimeout(() => setMessage(''), 2000);
+          }
+        };
+
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-green-100 to-blue-100 p-8">
+            <div className="max-w-4xl mx-auto">
+              <div className="text-center mb-8">
+                <h2 className="text-4xl font-bold text-green-800 mb-4">
+                  Stage 1: 早晨覺醒 / Morning Light
+                </h2>
+                <p className="text-xl text-gray-700">
+                  送物資到 Hunters Point 的 5 個家庭<br/>
+                  Deliver supplies to 5 families in Hunters Point
+                </p>
+                <div className="mt-4 text-2xl font-bold text-green-600">
+                  送達: {deliveries}/5 deliveries
+                </div>
+                {message && <div className="mt-2 text-lg text-green-600 font-bold">{message}</div>}
+              </div>
+
+              <div className="bg-white p-8 rounded-xl shadow-2xl mb-6">
+                <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${gridSize}, 1fr)` }}>
+                  {Array.from({ length: gridSize * gridSize }).map((_, idx) => {
+                    const x = Math.floor(idx / gridSize);
+                    const y = idx % gridSize;
+                    const isVolunteer = gridPosition.x === x && gridPosition.y === y;
+                    const isHome = homes.some(([hx, hy]) => hx === x && hy === y);
+                    
+                    return (
                       <div
                         key={idx}
-                        className={`bg-gradient-to-r ${colors[disc]} rounded-full h-12 flex items-center justify-center shadow-lg mb-2 text-white font-bold`}
-                        style={{ width: `${disc * 30 + 40}%` }}
+                        className={`aspect-square flex items-center justify-center text-4xl rounded-lg transition-all ${
+                          isVolunteer ? 'bg-green-400 scale-110' : isHome ? 'bg-yellow-200' : 'bg-gray-100'
+                        }`}
                       >
-                        {pancakeNames[disc].name} / {pancakeNames[disc].en}
+                        {isVolunteer ? '💚' : isHome ? '🏠' : ''}
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
-              ))}
+              </div>
+
+              <div className="flex flex-col items-center gap-4">
+                <button onClick={() => moveVolunteer(-1, 0)} className="bg-blue-500 text-white px-6 py-3 rounded-lg text-xl hover:bg-blue-600">⬆️ 上</button>
+                <div className="flex gap-4">
+                  <button onClick={() => moveVolunteer(0, -1)} className="bg-blue-500 text-white px-6 py-3 rounded-lg text-xl hover:bg-blue-600">⬅️ 左</button>
+                  <button onClick={() => moveVolunteer(0, 1)} className="bg-blue-500 text-white px-6 py-3 rounded-lg text-xl hover:bg-blue-600">➡️ 右</button>
+                </div>
+                <button onClick={() => moveVolunteer(1, 0)} className="bg-blue-500 text-white px-6 py-3 rounded-lg text-xl hover:bg-blue-600">⬇️ 下</button>
+              </div>
+
+              {deliveries >= 5 && (
+                <div className="mt-8 text-center">
+                  <div className="bg-green-100 p-6 rounded-xl mb-4">
+                    <p className="text-xl text-green-800">
+                      物資送達了！志工的一天才剛開始。<br/>
+                      來到慈濟人文學校，讓我們在茶道中學習禮儀與靜思。
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setStage(2)}
+                    className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform"
+                  >
+                    繼續 / Continue →
+                  </button>
+                </div>
+              )}
             </div>
           </div>
+        );
+      };
 
-          {isComplete && (
-            <div className="mt-8 text-center">
-              <div className="bg-green-100 p-6 rounded-xl mb-4">
-                <p className="text-2xl text-green-800 font-bold mb-2">
-                  美德堆疊完成！茶香潤澤人心 ✨<br/>
-                  Virtues stacked! Tea fragrance nourishes the heart
+      const Stage2 = () => {
+        const pancakeNames = {
+          1: { name: '感恩', en: 'Gratitude', quote: '感恩不僅是一種禮貌，更是一種內心修養' },
+          2: { name: '尊重', en: 'Respect', quote: '尊重生命，珍惜當下' },
+          3: { name: '愛', en: 'Love', quote: '愛是付出，不求回報' }
+        };
+
+        const colors = {
+          1: 'from-yellow-300 to-yellow-400',
+          2: 'from-orange-300 to-orange-400',
+          3: 'from-red-300 to-red-400'
+        };
+
+        const handleTowerClick = (tower) => {
+          if (selectedTower === null) {
+            if (hanoiTowers[tower].length > 0) {
+              setSelectedTower(tower);
+            }
+          } else {
+            if (selectedTower !== tower) {
+              const fromDisc = hanoiTowers[selectedTower][hanoiTowers[selectedTower].length - 1];
+              const toDisc = hanoiTowers[tower][hanoiTowers[tower].length - 1];
+              
+              if (!toDisc || fromDisc < toDisc) {
+                const newTowers = { ...hanoiTowers };
+                const disc = newTowers[selectedTower].pop();
+                newTowers[tower].push(disc);
+                setHanoiTowers(newTowers);
+                setMoves(moves + 1);
+                setMessage(pancakeNames[disc].quote);
+                setTimeout(() => setMessage(''), 4000);
+              }
+            }
+            setSelectedTower(null);
+          }
+        };
+
+        const isComplete = hanoiTowers.C.length === 3 && hanoiTowers.C[0] === 3 && hanoiTowers.C[2] === 1;
+
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-8">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center mb-8">
+                <div className="text-6xl mb-4">🍵</div>
+                <h2 className="text-4xl font-bold text-green-800 mb-4">
+                  Stage 2: 茶道人文 / Spiritual Tea Ceremony
+                </h2>
+                <p className="text-xl text-gray-700 mb-4">
+                  慈濟人文學校 - 堆疊美德煎餅<br/>
+                  Tzu Chi Academy - Stack the virtue pancakes
                 </p>
-                <p className="text-lg text-gray-700 mt-4">
-                  茶道讓心沉靜，美德讓心豐盈。<br/>
-                  但 2000 年，一個畫面改變了一切...<br/><br/>
-                  Tea ceremony calms the mind, virtues enrich the heart.<br/>
-                  But in 2000, one moment changed everything...
-                </p>
+                <div className="text-lg text-gray-600">移動次數 / Moves: {moves}</div>
+                {message && (
+                  <div className="mt-4 bg-yellow-50 p-4 rounded-lg border-2 border-yellow-300">
+                    <p className="text-lg text-gray-800">{message}</p>
+                  </div>
+                )}
               </div>
+
+              <div className="bg-white p-8 rounded-xl shadow-2xl">
+                <div className="grid grid-cols-3 gap-8">
+                  {['A', 'B', 'C'].map((tower) => (
+                    <div key={tower} className="flex flex-col items-center">
+                      <div className="text-2xl font-bold mb-4 text-gray-700">
+                        {tower === 'A' && '茶座 A'}
+                        {tower === 'B' && '茶座 B'}
+                        {tower === 'C' && '茶座 C'}
+                      </div>
+                      <div
+                        onClick={() => handleTowerClick(tower)}
+                        className={`w-full h-80 bg-gradient-to-t from-amber-700 to-amber-600 rounded-lg flex flex-col-reverse items-center justify-start p-4 cursor-pointer hover:shadow-lg transition-all ${
+                          selectedTower === tower ? 'ring-4 ring-green-500' : ''
+                        }`}
+                      >
+                        {hanoiTowers[tower].map((disc, idx) => (
+                          <div
+                            key={idx}
+                            className={`bg-gradient-to-r ${colors[disc]} rounded-full h-12 flex items-center justify-center shadow-lg mb-2 text-white font-bold`}
+                            style={{ width: `${disc * 30 + 40}%` }}
+                          >
+                            {pancakeNames[disc].name} / {pancakeNames[disc].en}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {isComplete && (
+                <div className="mt-8 text-center">
+                  <div className="bg-green-100 p-6 rounded-xl mb-4">
+                    <p className="text-2xl text-green-800 font-bold mb-2">
+                      美德堆疊完成！茶香潤澤人心 ✨
+                    </p>
+                    <p className="text-lg text-gray-700 mt-4">
+                      但 2000 年，一個畫面改變了一切...
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setStage(2.5)}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform"
+                  >
+                    繼續 / Continue →
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      };
+
+      const RiceIncident = () => (
+        <div className="min-h-screen bg-gradient-to-br from-amber-100 to-orange-200 flex items-center justify-center p-8">
+          <div className="max-w-3xl bg-white p-12 rounded-2xl shadow-2xl">
+            <div className="text-6xl text-center mb-8">🍚</div>
+            <h2 className="text-4xl font-bold text-center text-gray-800 mb-8">
+              生米事件 / The Raw Rice Moment
+            </h2>
+            <div className="space-y-6 text-lg text-gray-700 leading-relaxed">
+              <p className="text-center">
+                <strong>2000 年，Hunters Point 小學</strong>
+              </p>
+              <p>慈濟志工在學校發放食物袋和書籍。</p>
+              <p className="text-2xl text-center my-8">
+                一個小女孩看到生米，直接抓起來放進嘴裡咀嚼。
+              </p>
+              <p className="text-2xl text-red-600 font-bold text-center my-8">
+                "兩三天沒吃飯了..."
+              </p>
+              <p className="text-center text-green-700 font-bold text-xl mt-8">
+                這一刻，觸動了無數志工的心。<br/>
+                從此，25 年的愛，在 Hunters Point 生根。
+              </p>
+            </div>
+            <div className="mt-12 text-center">
               <button
-                onClick={() => setStage(2.5)}
-                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform"
+                onClick={() => setStage(3)}
+                className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform"
               >
-                繼續 / Continue →
+                繼續服務之旅 / Continue →
               </button>
             </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // Transition: Raw Rice Incident
-  const RiceIncident = () => {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-100 to-orange-200 flex items-center justify-center p-8">
-        <div className="max-w-3xl bg-white p-12 rounded-2xl shadow-2xl">
-          <div className="text-6xl text-center mb-8">🍚</div>
-          <h2 className="text-4xl font-bold text-center text-gray-800 mb-8">
-            生米事件 / The Raw Rice Moment
-          </h2>
-          <div className="space-y-6 text-lg text-gray-700 leading-relaxed">
-            <p className="text-center italic">
-              <strong>2000 年，Hunters Point 小學</strong><br/>
-              2000, Hunters Point Elementary School
-            </p>
-            <p>
-              慈濟志工在學校發放食物袋和書籍，讓小朋友下課後可以與家人分享。<br/>
-              <em>Tzu Chi volunteers distributed food bags and books at school for children to share with their families.</em>
-            </p>
-            <p>
-              一個小女孩拿到食物袋，看到裡面有一包白色的生米...<br/>
-              <em>A little girl received a food bag and saw a pack of raw rice inside...</em>
-            </p>
-            <p className="text-2xl text-center my-8">
-              她直接抓起生米，放進嘴裡咀嚼。<br/>
-              <em>She grabbed the raw rice and put it directly in her mouth.</em>
-            </p>
-            <p>
-              志工震驚地問："你餓了多久？"<br/>
-              <em>The volunteer asked in shock: "How long have you been hungry?"</em>
-            </p>
-            <p className="text-2xl text-red-600 font-bold text-center my-8">
-              "兩三天沒吃飯了..."<br/>
-              <em>"Haven't eaten for two or three days..."</em>
-            </p>
-            <p className="text-center text-green-700 font-bold text-xl mt-8">
-              這一刻，觸動了無數志工的心。<br/>
-              從此，25 年的愛，在 Hunters Point 生根。<br/><br/>
-              <em>This moment touched countless volunteers' hearts.<br/>
-              Since then, 25 years of love took root in Hunters Point.</em>
-            </p>
           </div>
-          <div className="mt-12 text-center">
+        </div>
+      );
+
+      const FinalStages = () => (
+        <div className="min-h-screen bg-gradient-to-br from-purple-100 to-pink-100 p-8 flex items-center justify-center">
+          <div className="max-w-2xl text-center space-y-8">
+            <div className="text-6xl mb-4">🌸</div>
+            <h2 className="text-4xl font-bold text-purple-800">
+              旅程完成 / Journey Complete
+            </h2>
+            <div className="bg-white p-8 rounded-xl shadow-xl space-y-4 text-lg text-gray-700">
+              <p><strong>你完成了一天的志工服務！</strong></p>
+              <div className="space-y-2 text-left">
+                <p>✅ Stage 1: 送達 5 個家庭</p>
+                <p>✅ Stage 2: 學習茶道美德</p>
+                <p>✅ 見證生米事件的啟發</p>
+              </div>
+              <div className="mt-8 pt-8 border-t-2 border-purple-200">
+                <p className="text-xl font-bold text-purple-700 mb-4">
+                  你願意成為真正的慈濟志工嗎？
+                </p>
+                <p className="text-gray-600">
+                  聯繫: hsu.meihsien@gmail.com
+                </p>
+              </div>
+            </div>
             <button
-              onClick={() => setStage(3)}
-              className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform"
+              onClick={() => {
+                setStage(0);
+                setEmotion('');
+                setGridPosition({ x: 0, y: 0 });
+                setDeliveries(0);
+                setHanoiTowers({ A: [3, 2, 1], B: [], C: [] });
+                setMoves(0);
+              }}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform"
             >
-              繼續服務之旅 / Continue the Journey →
+              重新開始 / Restart
             </button>
           </div>
         </div>
-      </div>
-    );
-  };
+      );
 
-  // Stage 3-5: Simplified versions
-  const FinalStages = () => (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 to-pink-100 p-8 flex items-center justify-center">
-      <div className="max-w-2xl text-center space-y-8">
-        <div className="text-6xl mb-4">🌸</div>
-        <h2 className="text-4xl font-bold text-purple-800">
-          旅程完成 / Journey Complete
-        </h2>
-        <div className="bg-white p-8 rounded-xl shadow-xl space-y-4 text-lg text-gray-700">
-          <p>
-            <strong>你完成了一天的志工服務！</strong><br/>
-            You completed a day of volunteer service!
-          </p>
-          <div className="space-y-2 text-left">
-            <p>✅ Stage 1: 送達 5 個家庭 / Delivered to 5 families</p>
-            <p>✅ Stage 2: 學習茶道美德 / Learned tea ceremony virtues</p>
-            <p>✅ 見證生米事件的啟發 / Witnessed the raw rice incident</p>
-          </div>
-          <div className="mt-8 pt-8 border-t-2 border-purple-200">
-            <p className="text-xl font-bold text-purple-700 mb-4">
-              你願意成為真正的慈濟志工嗎？<br/>
-              Would you like to become a real Tzu Chi volunteer?
-            </p>
-            <p className="text-gray-600">
-              聯繫 Contact: hsu.meihsien@gmail.com<br/>
-              慈濟舊金山 Tzu Chi San Francisco
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={() => {
-            setStage(0);
-            setEmotion('');
-            setGridPosition({ x: 0, y: 0 });
-            setDeliveries(0);
-            setHanoiTowers({ A: [3, 2, 1], B: [], C: [] });
-            setMoves(0);
-          }}
-          className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform"
-        >
-          重新開始 / Restart Journey
-        </button>
-      </div>
-    </div>
-  );
+      return (
+        <>
+          {stage === 0 && <WelcomeScreen />}
+          {stage === 1 && <Stage1 />}
+          {stage === 2 && <Stage2 />}
+          {stage === 2.5 && <RiceIncident />}
+          {stage >= 3 && <FinalStages />}
+        </>
+      );
+    };
 
-  return (
-    <div className="font-sans">
-      {stage === 0 && <WelcomeScreen />}
-      {stage === 1 && <Stage1 />}
-      {stage === 2 && <Stage2 />}
-      {stage === 2.5 && <RiceIncident />}
-      {stage >= 3 && <FinalStages />}
-    </div>
-  );
-};
-
-export default JourneyOfKindness;
+    ReactDOM.render(React.createElement(JourneyOfKindness), document.getElementById('root'));
   </script>
 </body>
 </html>
-```
