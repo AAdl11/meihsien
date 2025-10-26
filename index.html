@@ -39,7 +39,9 @@
         huntersPoint: '', // Hunters Point 社區照片
         teaCeremony: '',  // 茶道照片
         volunteers: '',   // 志工合照
-        community: ''     // 社區服務照片
+        community: '',    // 社區服務照片
+        fbQR: '',        // Facebook QR Code 圖片 URL
+        igQR: ''         // Instagram QR Code 圖片 URL
       },
       videos: {
         riceIncident: '' // 生米事件影片 (60秒內)
@@ -79,6 +81,7 @@
       const [board, setBoard] = useState(savedProgress?.board || Array(9).fill(null));
       const [isPlayerTurn, setIsPlayerTurn] = useState(true);
       const [serviceComplete, setServiceComplete] = useState(savedProgress?.serviceComplete || false);
+      const [selectedService, setSelectedService] = useState(savedProgress?.selectedService || null);
       
       // Stage 4 states - CRITICAL FIX: Ensure queensBoard is properly loaded as array of booleans
       const [queensBoard, setQueensBoard] = useState(() => {
@@ -112,6 +115,7 @@
             moves,
             board,
             serviceComplete,
+            selectedService,
             queensBoard,
             conflicts,
             queensPlaced,
@@ -124,7 +128,7 @@
           localStorage.setItem('journeyOfKindness', JSON.stringify(progress));
           console.log('Progress saved:', progress); // Debug log
         }
-      }, [stage, deliveries, moves, serviceComplete, queensPlaced, conflicts, meditationPhase]);
+      }, [stage, deliveries, moves, serviceComplete, selectedService, queensPlaced, conflicts, meditationPhase]);
 
       // 🗑️ Clear progress function
       const clearProgress = () => {
@@ -447,6 +451,13 @@
               </div>
 
               <div className="bg-white p-8 rounded-xl shadow-2xl">
+                <div className="mb-6 bg-amber-50 p-4 rounded-lg border-2 border-amber-300">
+                  <p className="text-lg text-amber-900 font-semibold text-center">
+                    📜 遊戲規則 / Game Rules:<br/>
+                    <span className="text-md">大煎餅不能放在小煎餅上面 / Large pancakes cannot be placed on top of small ones</span><br/>
+                    <span className="text-md">點擊茶座移動煎餅 / Click towers to move pancakes</span>
+                  </p>
+                </div>
                 <div className="grid grid-cols-3 gap-8">
                   {['A', 'B', 'C'].map((tower) => (
                     <div key={tower} className="flex flex-col items-center">
@@ -545,19 +556,26 @@
 
       // ==================== STAGE 3: COMMUNITY SERVICE (Minimax) ====================
       const Stage3 = () => {
-        const serviceTypes = ['🍚', '📚', '🏥'];
+        const serviceTypes = {
+          food: { emoji: '🍚', name: '食物發放', enName: 'Food Assistance', color: 'from-yellow-400 to-orange-400' },
+          education: { emoji: '📚', name: '教育支持', enName: 'Education Support', color: 'from-blue-400 to-indigo-400' },
+          healthcare: { emoji: '🏥', name: '醫療關懷', enName: 'Healthcare', color: 'from-red-400 to-pink-400' }
+        };
+        
+        const playerSymbol = selectedService ? serviceTypes[selectedService].emoji : null;
+        const aiSymbol = '💚';
         
         const minimax = (board, depth, isMaximizing) => {
           const winner = checkWinner(board);
-          if (winner === '🏥') return 10 - depth;
-          if (winner === '💚') return depth - 10;
+          if (winner === aiSymbol) return 10 - depth;
+          if (winner === playerSymbol) return depth - 10;
           if (board.every(cell => cell !== null)) return 0;
           
           if (isMaximizing) {
             let bestScore = -Infinity;
             for (let i = 0; i < 9; i++) {
               if (board[i] === null) {
-                board[i] = '🏥';
+                board[i] = aiSymbol;
                 const score = minimax(board, depth + 1, false);
                 board[i] = null;
                 bestScore = Math.max(score, bestScore);
@@ -568,7 +586,7 @@
             let bestScore = Infinity;
             for (let i = 0; i < 9; i++) {
               if (board[i] === null) {
-                board[i] = '💚';
+                board[i] = playerSymbol;
                 const score = minimax(board, depth + 1, true);
                 board[i] = null;
                 bestScore = Math.min(score, bestScore);
@@ -594,18 +612,24 @@
         };
 
         const handlePlayerMove = (index) => {
-          if (board[index] || !isPlayerTurn || serviceComplete) return;
+          if (board[index] || !isPlayerTurn || serviceComplete || !selectedService) return;
           
           const newBoard = [...board];
-          newBoard[index] = '💚';
+          newBoard[index] = playerSymbol;
           setBoard(newBoard);
           
           const winner = checkWinner(newBoard);
-          if (winner || newBoard.every(cell => cell !== null)) {
+          if (winner) {
             setServiceComplete(true);
-            setMessage(winner === '💚' 
-              ? '服務網建立成功！愛心連成一線！/ Service network established! Hearts connected!' 
-              : '合作完成！每個角落都有關懷！/ Cooperation complete! Care reaches every corner!');
+            if (winner === playerSymbol) {
+              const service = serviceTypes[selectedService];
+              setMessage(`🎉 ${service.name}服務網建立成功！${service.emoji} 連成一線！/ ${service.enName} network established! ${service.emoji} Connected in a line! 🎉`);
+            }
+            return;
+          }
+          
+          if (newBoard.every(cell => cell !== null)) {
+            setMessage('棋盤已滿！再試一次連成一線！/ Board full! Try again to connect three! 🔄');
             return;
           }
           
@@ -616,7 +640,7 @@
             let bestMove = -1;
             for (let i = 0; i < 9; i++) {
               if (newBoard[i] === null) {
-                newBoard[i] = '🏥';
+                newBoard[i] = aiSymbol;
                 const score = minimax(newBoard, 0, false);
                 newBoard[i] = null;
                 if (score > bestScore) {
@@ -627,13 +651,15 @@
             }
             
             if (bestMove !== -1) {
-              newBoard[bestMove] = '🏥';
+              newBoard[bestMove] = aiSymbol;
               setBoard(newBoard);
               
               const winner = checkWinner(newBoard);
-              if (winner || newBoard.every(cell => cell !== null)) {
+              if (winner) {
                 setServiceComplete(true);
-                setMessage('社區需求分析完成！智慧與愛心的結合！/ Community needs analysis complete! Wisdom meets compassion!');
+                setMessage('🎉 慈濟志工也連成一線！💚 智慧與愛心的結合！/ Tzu Chi volunteers also connected! 💚 Wisdom meets compassion! 🎉');
+              } else if (newBoard.every(cell => cell !== null)) {
+                setMessage('棋盤已滿！再試一次連成一線！/ Board full! Try again to connect three! 🔄');
               } else {
                 setIsPlayerTurn(true);
               }
@@ -641,79 +667,145 @@
           }, 500);
         };
 
+        const resetBoard = () => {
+          setBoard(Array(9).fill(null));
+          setIsPlayerTurn(true);
+          setServiceComplete(false);
+          setMessage('');
+          setSelectedService(null);
+        };
+
+        const selectService = (serviceKey) => {
+          setSelectedService(serviceKey);
+          setBoard(Array(9).fill(null));
+          setIsPlayerTurn(true);
+          setServiceComplete(false);
+          setMessage('');
+        };
+
         return (
           <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-8">
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-5xl mx-auto">
               {MEDIA.images.community && (
                 <div className="mb-6 text-center">
-                  <img src={MEDIA.images.community} alt="Community Service" className="w-full max-w-2xl mx-auto rounded-xl shadow-lg" />
+                  <img src={MEDIA.images.community} alt="Community Service" className="w-full max-w-3xl mx-auto rounded-xl shadow-lg" />
                 </div>
               )}
               
               <div className="text-center mb-8">
-                <div className="text-6xl mb-4">💚</div>
+                <div className="text-7xl mb-4">💚</div>
                 <h2 className="text-4xl font-bold text-purple-800 mb-4">
                   Stage 3: 社區服務 / Community Service
                 </h2>
-                <p className="text-xl text-gray-700 mb-4">
+                <p className="text-xl text-gray-700 mb-4 leading-relaxed">
                   生米事件後，慈濟決定長期服務 Hunters Point<br/>
-                  資源有限，必須策略性分配<br/><br/>
-                  After the raw rice incident, Tzu Chi committed to long-term service in Hunters Point<br/>
-                  With limited resources, strategic allocation is essential
+                  你想參與哪種服務？選擇你的服務類型！<br/><br/>
+                  After the raw rice incident, Tzu Chi committed to long-term service<br/>
+                  Which service would you like to join? Choose your service type!
                 </p>
-                <p className="text-lg text-gray-600 mb-4">
-                  💚 志工的愛心決策 vs 🏥 AI 社區需求分析<br/>
-                  Volunteer compassion decisions vs AI community needs analysis
-                </p>
-                <p className="text-md text-gray-500">
-                  這不是對抗，而是智慧與愛心的合作<br/>
-                  This is not competition, but collaboration between wisdom and compassion
-                </p>
-                {message && (
-                  <div className="mt-4 bg-green-50 p-4 rounded-lg border-2 border-green-300">
-                    <p className="text-lg text-green-800 font-bold">{message}</p>
-                  </div>
-                )}
               </div>
 
-              <div className="bg-white p-8 rounded-xl shadow-2xl mb-6">
-                <div className="grid grid-cols-3 gap-4">
-                  {board.map((cell, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handlePlayerMove(idx)}
-                      disabled={!isPlayerTurn || cell !== null || serviceComplete}
-                      className={`aspect-square text-6xl flex items-center justify-center rounded-lg transition-all ${
-                        cell ? 'bg-gradient-to-br from-green-200 to-blue-200' : 'bg-gray-100 hover:bg-gray-200'
-                      } ${!isPlayerTurn || cell || serviceComplete ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105'}`}
+              {/* Service Selection */}
+              {!selectedService && (
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold text-center text-purple-700 mb-6">
+                    選擇你的服務類型 / Choose Your Service Type
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {Object.entries(serviceTypes).map(([key, service]) => (
+                      <button
+                        key={key}
+                        onClick={() => selectService(key)}
+                        className={`bg-gradient-to-br ${service.color} text-white p-8 rounded-2xl shadow-xl hover:scale-105 transition-transform`}
+                      >
+                        <div className="text-7xl mb-4">{service.emoji}</div>
+                        <div className="text-2xl font-bold mb-2">{service.name}</div>
+                        <div className="text-lg">{service.enName}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Game Board */}
+              {selectedService && (
+                <>
+                  <div className="text-center mb-6">
+                    <div className="inline-block bg-white px-8 py-4 rounded-2xl shadow-lg border-2 border-purple-300">
+                      <p className="text-xl font-bold text-purple-700">
+                        你選擇的服務 / Your Service: {serviceTypes[selectedService].emoji} {serviceTypes[selectedService].name}
+                      </p>
+                      <p className="text-lg text-gray-600 mt-2">
+                        💚 慈濟志工 Tzu Chi Volunteers vs {playerSymbol} 你的服務 Your Service
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-center text-lg text-purple-600 font-semibold mb-4">
+                    🎯 目標：連成一線建立服務網！/ Goal: Connect three in a line!<br/>
+                    這不是對抗，而是智慧與愛心的合作<br/>
+                    This is not competition, but collaboration between wisdom and compassion
+                  </p>
+                  
+                  {message && (
+                    <div className={`mb-6 p-4 rounded-lg border-2 text-center ${
+                      serviceComplete ? 'bg-green-50 border-green-300' : 'bg-yellow-50 border-yellow-300'
+                    }`}>
+                      <p className="text-lg font-bold">{message}</p>
+                    </div>
+                  )}
+
+                  <div className="bg-white p-8 rounded-xl shadow-2xl mb-6">
+                    <div className="mb-4 bg-blue-50 p-4 rounded-lg border-2 border-blue-300">
+                      <p className="text-lg text-blue-900 font-semibold text-center">
+                        📜 遊戲規則 / Game Rules:<br/>
+                        <span className="text-md">點擊空格建立服務點 / Click empty cells</span><br/>
+                        <span className="text-md font-bold text-purple-700">⭐ 必須連成一線才算完成！/ Must connect three in a row!</span>
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      {board.map((cell, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => handlePlayerMove(idx)}
+                          disabled={!isPlayerTurn || cell !== null || serviceComplete}
+                          className={`aspect-square text-7xl flex items-center justify-center rounded-lg transition-all ${
+                            cell ? 'bg-gradient-to-br from-green-200 to-blue-200' : 'bg-gray-100 hover:bg-gray-200'
+                          } ${!isPlayerTurn || cell || serviceComplete ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105'}`}
+                        >
+                          {cell}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="text-center mb-6">
+                    <button 
+                      onClick={resetBoard}
+                      className="bg-gray-500 text-white px-8 py-3 rounded-full text-lg font-bold hover:scale-105 transition-transform hover:bg-gray-600"
                     >
-                      {cell}
+                      重新選擇服務 / Choose Different Service
                     </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="text-center text-lg text-gray-600 mb-6">
-                <p className="font-bold mb-2">三種服務類型 / Three Types of Services:</p>
-                <p>🍚 食物援助 Food Assistance | 📚 教育支持 Education Support | 🏥 醫療關懷 Healthcare</p>
-                <p className="mt-4">點擊空格建立服務點，連成三線建立完整服務網<br/>
-                Click empty cells to establish service points, connect three to build a complete network</p>
-              </div>
-
-              {serviceComplete && (
-                <div className="mt-8 text-center">
-                  <div className="bg-purple-100 p-6 rounded-xl mb-4">
-                    <p className="text-xl text-purple-800 leading-relaxed">
-                      服務網建立了！25 年來，這份愛從未間斷。<br/>
-                      但如何優化志工配置？讓每個角落都能得到關懷？<br/><br/>
-                      Service network established! For 25 years, this love has never stopped.<br/>
-                      But how do we optimize volunteer allocation so every corner receives care?
-                    </p>
                   </div>
-                  <button onClick={() => setStage(4)} className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform">
-                    繼續 / Continue →
-                  </button>
-                </div>
+
+                  {serviceComplete && (
+                    <div className="mt-8 text-center">
+                      <div className="bg-purple-100 p-6 rounded-xl mb-4 border-2 border-purple-300">
+                        <p className="text-xl text-purple-800 leading-relaxed">
+                          🎉 服務網建立了！25 年來，這份愛從未間斷。<br/>
+                          無論是食物、教育還是醫療，每個角落都有關懷！<br/><br/>
+                          🎉 Service network established! For 25 years, this love never stopped.<br/>
+                          Whether food, education, or healthcare, every corner receives care!<br/><br/>
+                          但如何優化志工配置？讓每個角落都能得到關懷？<br/>
+                          But how do we optimize volunteer allocation?
+                        </p>
+                      </div>
+                      <button onClick={() => setStage(4)} className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform shadow-lg">
+                        繼續 / Continue →
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -788,6 +880,12 @@
               </div>
 
               <div className="bg-white p-8 rounded-xl shadow-2xl mb-6">
+                <div className="mb-4 bg-orange-50 p-4 rounded-lg border-2 border-orange-300">
+                  <p className="text-lg text-orange-900 font-semibold text-center">
+                    📜 遊戲規則 / Game Rules:<br/>
+                    <span className="text-md">放置 4 個志工，避免同行、同列、同對角線<br/>Place 4 volunteers, avoid same row/column/diagonal</span>
+                  </p>
+                </div>
                 <div className="grid grid-cols-4 gap-2">
                   {queensBoard.map((hasQueen, idx) => (
                     <button
@@ -981,9 +1079,14 @@
                       value={userReflection}
                       onChange={(e) => setUserReflection(e.target.value)}
                       placeholder="寫下你此刻的感受... / Write your reflections..."
-                      className="w-full h-32 p-4 border-2 border-indigo-300 rounded-lg text-lg"
+                      className="w-full h-32 p-4 border-2 border-indigo-300 rounded-lg text-lg focus:outline-none focus:border-indigo-500"
+                      autoFocus
                     />
-                    <button onClick={handleReflection} disabled={!userReflection.trim()} className="bg-indigo-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform disabled:bg-gray-400">
+                    <button 
+                      onClick={handleReflection} 
+                      disabled={!userReflection.trim()} 
+                      className="bg-indigo-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
                       繼續 / Continue
                     </button>
                   </div>
@@ -1070,36 +1173,55 @@
                 </div>
               </div>
             </div>
-            <button
-              onClick={() => {
-                clearProgress();
-                setStage(0);
-                setEmotion('');
-                setShowResponse(false);
-                setGridPosition({ x: 0, y: 0 });
-                setDeliveries(0);
-                setVisitedHomes([]);
-                setHanoiTowers({ A: [3, 2, 1], B: [], C: [] });
-                setMoves(0);
-                setBoard(Array(9).fill(null));
-                setIsPlayerTurn(true);
-                setServiceComplete(false);
-                setQueensBoard(Array(16).fill(false));
-                setConflicts(0);
-                setQueensPlaced(0);
-                setMeditationPhase(0);
-                setBreathCount(0);
-                setUserReflection('');
-                setSelectedAphorism('');
-                if (currentAudio) {
-                  currentAudio.pause();
-                  currentAudio.currentTime = 0;
-                }
-              }}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform"
-            >
-              重新開始 / Restart
-            </button>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={() => {
+                  clearProgress();
+                  setStage(0);
+                  setEmotion('');
+                  setShowResponse(false);
+                  setGridPosition({ x: 0, y: 0 });
+                  setDeliveries(0);
+                  setVisitedHomes([]);
+                  setHanoiTowers({ A: [3, 2, 1], B: [], C: [] });
+                  setMoves(0);
+                  setBoard(Array(9).fill(null));
+                  setIsPlayerTurn(true);
+                  setServiceComplete(false);
+                  setQueensBoard(Array(16).fill(false));
+                  setConflicts(0);
+                  setQueensPlaced(0);
+                  setMeditationPhase(0);
+                  setBreathCount(0);
+                  setUserReflection('');
+                  setSelectedAphorism('');
+                  if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio.currentTime = 0;
+                  }
+                }}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform"
+              >
+                🔄 重新開始 / Restart
+              </button>
+              <button
+                onClick={() => {
+                  clearProgress();
+                  if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio.currentTime = 0;
+                  }
+                  window.close();
+                  // If window.close() doesn't work (some browsers block it), show message
+                  setTimeout(() => {
+                    alert('請關閉此分頁。感謝您的參與！\n\nPlease close this tab. Thank you for participating!');
+                  }, 100);
+                }}
+                className="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform"
+              >
+                🚪 離開遊戲 / Exit Game
+              </button>
+            </div>
           </div>
         </div>
       );
