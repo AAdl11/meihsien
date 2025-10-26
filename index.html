@@ -1110,25 +1110,15 @@
                       </p>
                     </div>
                     
-                    <div className="relative">
-                      <textarea
-                        value={userReflection}
-                        onChange={handleSmartTextChange}
-                        placeholder="例如：看到志工無私的奉獻讓我很感動... / For example: I was moved by the volunteers' selfless dedication..."
-                        className="w-full h-32 p-4 border-2 border-indigo-300 rounded-lg text-lg focus:outline-none focus:border-indigo-500"
-                        style={{
-                          direction: 'ltr',
-                          textAlign: 'left',
-                          fontFamily: 'Arial, sans-serif',
-                          resize: 'vertical'
-                        }}
-                        dir="ltr"
-                        autoFocus
-                      />
-                      <div className="absolute bottom-2 right-2 text-xs text-gray-400">
-                        自動修正文字方向 / Auto-correcting text direction
-                      </div>
-                    </div>
+                    {/* COPY EXACT SAME INPUT AS WELCOME SCREEN */}
+                    <input
+                      type="text"
+                      value={userReflection}
+                      onChange={(e) => setUserReflection(e.target.value)}
+                      placeholder="例如：看到志工無私的奉獻讓我很感動... / For example: I was moved by volunteers' dedication..."
+                      className="w-full px-6 py-3 rounded-full text-black text-center text-lg"
+                      autoFocus
+                    />
                     
                     <button 
                       onClick={handleReflection} 
