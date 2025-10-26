@@ -1211,7 +1211,7 @@
                 </div>
               </div>
             </div>
-            <div className="flex gap-4 justify-center">
+            <div className="flex flex-col gap-4 justify-center">
               <button
                 onClick={() => {
                   clearProgress();
@@ -1237,11 +1237,14 @@
                     currentAudio.pause();
                     currentAudio.currentTime = 0;
                   }
+                  // Force scroll to top
+                  window.scrollTo(0, 0);
                 }}
                 className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform"
               >
-                🔄 重新開始 / Restart
+                🔄 重新開始 / Restart Journey
               </button>
+              
               <button
                 onClick={() => {
                   clearProgress();
@@ -1249,16 +1252,25 @@
                     currentAudio.pause();
                     currentAudio.currentTime = 0;
                   }
-                  window.close();
-                  // If window.close() doesn't work (some browsers block it), show message
-                  setTimeout(() => {
-                    alert('請關閉此分頁。感謝您的參與！\n\nPlease close this tab. Thank you for participating!');
-                  }, 100);
+                  // Mobile-friendly exit message
+                  alert('感謝您完成慈悲之旅！\n\n請使用瀏覽器的返回鍵或關閉分頁。\n\nThank you for completing the Journey of Kindness!\n\nPlease use browser back button or close tab.');
+                  // Try to go back in history, fallback to home page
+                  if (window.history.length > 1) {
+                    window.history.back();
+                  } else {
+                    window.location.href = 'about:blank';
+                  }
                 }}
                 className="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform"
               >
-                🚪 離開遊戲 / Exit Game
+                ✨ 完成旅程 / Complete & Exit
               </button>
+              
+              {/* Mobile-specific help */}
+              <div className="text-center text-sm text-gray-600 mt-4 md:hidden">
+                <p>手機用戶：點擊上方按鈕後可使用瀏覽器返回鍵</p>
+                <p>Mobile users: Use browser back button after clicking above</p>
+              </div>
             </div>
           </div>
         </div>
