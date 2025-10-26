@@ -742,7 +742,8 @@
           
           const placed = newBoard.filter(Boolean).length;
           setQueensPlaced(placed);
-          setConflicts(checkConflicts(newBoard));
+          const newConflicts = checkConflicts(newBoard);
+          setConflicts(newConflicts);
         };
 
         const isComplete = queensPlaced === 4 && conflicts === 0;
@@ -796,7 +797,7 @@
               </div>
 
               {isComplete && (
-                <div className="mt-8 text-center">
+                <div className="mt-8 text-center animate-fade-in">
                   <div className="bg-orange-100 p-6 rounded-xl mb-4">
                     <p className="text-xl text-orange-800 leading-relaxed">
                       完美配置！志工排班完成！✨<br/>
@@ -809,8 +810,27 @@
                       Let us enter the peaceful portico, to restore inner peace...
                     </p>
                   </div>
-                  <button onClick={() => setStage(5)} className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform">
+                  <button 
+                    onClick={() => setStage(5)} 
+                    className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform shadow-lg"
+                  >
                     進入寧靜門廊 / Enter Ataraxy Portico →
+                  </button>
+                </div>
+              )}
+
+              {!isComplete && (
+                <div className="mt-8 text-center">
+                  <button 
+                    onClick={() => {
+                      const newBoard = Array(16).fill(false);
+                      setQueensBoard(newBoard);
+                      setQueensPlaced(0);
+                      setConflicts(0);
+                    }}
+                    className="bg-gray-400 text-white px-8 py-3 rounded-full text-lg font-bold hover:scale-105 transition-transform"
+                  >
+                    重置排班 / Reset Board
                   </button>
                 </div>
               )}
