@@ -80,8 +80,13 @@
       const [isPlayerTurn, setIsPlayerTurn] = useState(true);
       const [serviceComplete, setServiceComplete] = useState(savedProgress?.serviceComplete || false);
       
-      // Stage 4 states
-      const [queensBoard, setQueensBoard] = useState(savedProgress?.queensBoard || Array(16).fill(false));
+      // Stage 4 states - CRITICAL FIX: Ensure queensBoard is properly loaded as array of booleans
+      const [queensBoard, setQueensBoard] = useState(() => {
+        if (savedProgress?.queensBoard && Array.isArray(savedProgress.queensBoard)) {
+          return savedProgress.queensBoard;
+        }
+        return Array(16).fill(false);
+      });
       const [conflicts, setConflicts] = useState(savedProgress?.conflicts || 0);
       const [queensPlaced, setQueensPlaced] = useState(savedProgress?.queensPlaced || 0);
       
@@ -94,7 +99,7 @@
       const [message, setMessage] = useState('');
       const [currentAudio, setCurrentAudio] = useState(null);
 
-      // 💾 Save progress whenever stage changes
+      // 💾 Save progress whenever important state changes
       useEffect(() => {
         if (stage > 0) {
           const progress = {
@@ -117,12 +122,14 @@
             savedAt: new Date().toISOString()
           };
           localStorage.setItem('journeyOfKindness', JSON.stringify(progress));
+          console.log('Progress saved:', progress); // Debug log
         }
-      }, [stage, deliveries, moves, serviceComplete, queensPlaced, meditationPhase]);
+      }, [stage, deliveries, moves, serviceComplete, queensPlaced, conflicts, meditationPhase]);
 
       // 🗑️ Clear progress function
       const clearProgress = () => {
         localStorage.removeItem('journeyOfKindness');
+        console.log('Progress cleared'); // Debug log
       };
 
       // 🎵 Background Music Controller
@@ -744,9 +751,13 @@
           setQueensPlaced(placed);
           const newConflicts = checkConflicts(newBoard);
           setConflicts(newConflicts);
+          
+          console.log('Queens placed:', placed, 'Conflicts:', newConflicts); // Debug
         };
 
         const isComplete = queensPlaced === 4 && conflicts === 0;
+        
+        console.log('Stage 4 render - Queens:', queensPlaced, 'Conflicts:', conflicts, 'Complete:', isComplete); // Debug
 
         return (
           <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-100 p-8">
@@ -769,6 +780,11 @@
                   完美排班：4 個志工，0 個衝突<br/>
                   Perfect schedule: 4 volunteers, 0 conflicts
                 </p>
+                {isComplete && (
+                  <div className="mt-4 text-xl font-bold text-green-600">
+                    ✅ 完成！按下面的按鈕繼續 / Complete! Click button below to continue
+                  </div>
+                )}
               </div>
 
               <div className="bg-white p-8 rounded-xl shadow-2xl mb-6">
@@ -777,9 +793,10 @@
                     <button
                       key={idx}
                       onClick={() => handleCellClick(idx)}
+                      disabled={isComplete}
                       className={`aspect-square text-5xl flex items-center justify-center rounded-lg transition-all ${
                         hasQueen ? 'bg-gradient-to-br from-orange-300 to-red-300' : 'bg-gray-100 hover:bg-gray-200'
-                      } cursor-pointer hover:scale-105`}
+                      } ${isComplete ? 'cursor-not-allowed opacity-75' : 'cursor-pointer hover:scale-105'}`}
                     >
                       {hasQueen ? '👤' : ''}
                     </button>
@@ -798,10 +815,10 @@
 
               {isComplete && (
                 <div className="mt-8 text-center animate-fade-in">
-                  <div className="bg-orange-100 p-6 rounded-xl mb-4">
+                  <div className="bg-orange-100 p-6 rounded-xl mb-4 border-2 border-orange-300">
                     <p className="text-xl text-orange-800 leading-relaxed">
-                      完美配置！志工排班完成！✨<br/>
-                      Perfect arrangement! Volunteer scheduling complete! ✨<br/><br/>
+                      🎉 完美配置！志工排班完成！✨<br/>
+                      🎉 Perfect arrangement! Volunteer scheduling complete! ✨<br/><br/>
                       一天的服務結束了。從早晨送物資，到茶道靜思，到社區服務，到志工排班...<br/>
                       志工們付出了很多，但志工的心也需要重置與療癒。<br/><br/>
                       The day's service is done. From morning deliveries, tea ceremony meditation, community service, to volunteer scheduling...<br/>
@@ -811,8 +828,11 @@
                     </p>
                   </div>
                   <button 
-                    onClick={() => setStage(5)} 
-                    className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform shadow-lg"
+                    onClick={() => {
+                      console.log('Button clicked - Moving to Stage 5'); // Debug
+                      setStage(5);
+                    }}
+                    className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-16 py-5 rounded-full text-2xl font-bold hover:scale-110 transition-transform shadow-2xl"
                   >
                     進入寧靜門廊 / Enter Ataraxy Portico →
                   </button>
@@ -828,7 +848,7 @@
                       setQueensPlaced(0);
                       setConflicts(0);
                     }}
-                    className="bg-gray-400 text-white px-8 py-3 rounded-full text-lg font-bold hover:scale-105 transition-transform"
+                    className="bg-gray-500 text-white px-8 py-3 rounded-full text-lg font-bold hover:scale-105 transition-transform hover:bg-gray-600"
                   >
                     重置排班 / Reset Board
                   </button>
