@@ -1030,6 +1030,32 @@
           }
         };
 
+        // Smart text input handler that detects and fixes backward typing
+        const handleSmartTextChange = (e) => {
+          let value = e.target.value;
+          
+          // Detect if text appears to be typed backwards
+          const isBackward = (text) => {
+            // Simple heuristic: if the last word looks like reversed English/Chinese
+            const words = text.split(' ');
+            const lastWord = words[words.length - 1];
+            // Check for common reversed patterns
+            return lastWord.match(/[a-z]{3,}/) && !lastWord.match(/^(the|and|for|you|that|with|this|but|his|from|they|she|her|been|than|its|who|did|get|may|him|old|see|now|way|could|people|take|year|your|good|some|come|time|very|know|just|first|into|over|think|also|back|after|use|two|how|our|work|life|day|get|has|had|what|said|each|which|their|will|about|out|many|then|them|these|so|some|her|would|make|like|him|time|has|look|two|more|write|go|see|no|way|could|said|what|when|where|why|how)$/);
+          };
+          
+          // If backward detected, reverse the text
+          if (isBackward(value)) {
+            value = value.split('').reverse().join('');
+          }
+          
+          setUserReflection(value);
+          
+          // Force cursor to end
+          setTimeout(() => {
+            e.target.setSelectionRange(value.length, value.length);
+          }, 0);
+        };
+
         return (
           <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-200 p-8 flex items-center justify-center">
             <div className="max-w-3xl w-full bg-white p-12 rounded-3xl shadow-2xl">
@@ -1089,34 +1115,38 @@
                         今天的服務中，什麼觸動了你的心？<br/>
                         What touched your heart during today's service?
                       </p>
+                      <p className="text-sm text-purple-600 mt-2 font-semibold">
+                        💝 這是今天旅程的核心時刻 - 請分享你的真實感受<br/>
+                        This is the heart of today's journey - please share your genuine feelings
+                      </p>
                     </div>
-                    <textarea
-                      value={userReflection}
-                      onChange={(e) => setUserReflection(e.target.value)}
-                      placeholder="寫下你此刻的感受... / Write your reflections..."
-                      className="w-full h-32 p-4 border-2 border-indigo-300 rounded-lg text-lg focus:outline-none focus:border-indigo-500 force-ltr"
-                      style={{
-                        direction: 'ltr !important', 
-                        unicodeBidi: 'embed !important', 
-                        textAlign: 'left !important',
-                        writingMode: 'horizontal-tb !important',
-                        fontFamily: 'Arial, sans-serif !important'
-                      }}
-                      dir="ltr"
-                      lang="en"
-                      onFocus={(e) => {
-                        e.target.style.direction = 'ltr';
-                        e.target.style.unicodeBidi = 'embed';
-                        e.target.style.textAlign = 'left';
-                      }}
-                      autoFocus
-                    />
+                    
+                    <div className="relative">
+                      <textarea
+                        value={userReflection}
+                        onChange={handleSmartTextChange}
+                        placeholder="例如：看到志工無私的奉獻讓我很感動... / For example: I was moved by the volunteers' selfless dedication..."
+                        className="w-full h-32 p-4 border-2 border-indigo-300 rounded-lg text-lg focus:outline-none focus:border-indigo-500"
+                        style={{
+                          direction: 'ltr',
+                          textAlign: 'left',
+                          fontFamily: 'Arial, sans-serif',
+                          resize: 'vertical'
+                        }}
+                        dir="ltr"
+                        autoFocus
+                      />
+                      <div className="absolute bottom-2 right-2 text-xs text-gray-400">
+                        自動修正文字方向 / Auto-correcting text direction
+                      </div>
+                    </div>
+                    
                     <button 
                       onClick={handleReflection} 
                       disabled={!userReflection.trim()} 
                       className="bg-indigo-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform disabled:bg-gray-400 disabled:cursor-not-allowed"
                     >
-                      繼續 / Continue
+                      分享我的感受 / Share My Feelings
                     </button>
                   </div>
                 )}
