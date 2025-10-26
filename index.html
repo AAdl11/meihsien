@@ -14,6 +14,21 @@
       to { opacity: 1; transform: translateY(0); }
     }
     .animate-fade-in { animation: fadeIn 0.8s ease-out; }
+    
+    /* FORCE TEXT DIRECTION FIX */
+    textarea, input[type="text"] {
+      direction: ltr !important;
+      unicode-bidi: normal !important;
+      text-align: left !important;
+      writing-mode: horizontal-tb !important;
+    }
+    
+    .force-ltr {
+      direction: ltr !important;
+      unicode-bidi: embed !important;
+      text-align: left !important;
+      writing-mode: horizontal-tb !important;
+    }
   </style>
 </head>
 <body>
@@ -1079,14 +1094,21 @@
                       value={userReflection}
                       onChange={(e) => setUserReflection(e.target.value)}
                       placeholder="寫下你此刻的感受... / Write your reflections..."
-                      className="w-full h-32 p-4 border-2 border-indigo-300 rounded-lg text-lg focus:outline-none focus:border-indigo-500"
+                      className="w-full h-32 p-4 border-2 border-indigo-300 rounded-lg text-lg focus:outline-none focus:border-indigo-500 force-ltr"
                       style={{
                         direction: 'ltr !important', 
-                        unicodeBidi: 'normal !important', 
+                        unicodeBidi: 'embed !important', 
                         textAlign: 'left !important',
-                        writingMode: 'horizontal-tb !important'
+                        writingMode: 'horizontal-tb !important',
+                        fontFamily: 'Arial, sans-serif !important'
                       }}
                       dir="ltr"
+                      lang="en"
+                      onFocus={(e) => {
+                        e.target.style.direction = 'ltr';
+                        e.target.style.unicodeBidi = 'embed';
+                        e.target.style.textAlign = 'left';
+                      }}
                       autoFocus
                     />
                     <button 
