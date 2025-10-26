@@ -81,7 +81,7 @@
       const [board, setBoard] = useState(savedProgress?.board || Array(9).fill(null));
       const [isPlayerTurn, setIsPlayerTurn] = useState(true);
       const [serviceComplete, setServiceComplete] = useState(savedProgress?.serviceComplete || false);
-      const [selectedService, setSelectedService] = useState(savedProgress?.selectedService || null);
+      const [selectedService, setSelectedService] = useState(null); // ALWAYS start with null to show selection
       
       // Stage 4 states - CRITICAL FIX: Ensure queensBoard is properly loaded as array of booleans
       const [queensBoard, setQueensBoard] = useState(() => {
@@ -1080,7 +1080,13 @@
                       onChange={(e) => setUserReflection(e.target.value)}
                       placeholder="寫下你此刻的感受... / Write your reflections..."
                       className="w-full h-32 p-4 border-2 border-indigo-300 rounded-lg text-lg focus:outline-none focus:border-indigo-500"
-                      style={{direction: 'ltr', unicodeBidi: 'normal', textAlign: 'left'}}
+                      style={{
+                        direction: 'ltr !important', 
+                        unicodeBidi: 'normal !important', 
+                        textAlign: 'left !important',
+                        writingMode: 'horizontal-tb !important'
+                      }}
+                      dir="ltr"
                       autoFocus
                     />
                     <button 
