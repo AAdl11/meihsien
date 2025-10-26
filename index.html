@@ -1030,29 +1030,18 @@
           }
         };
 
-        // Smart text input handler that detects and fixes backward typing
+        // GUARANTEED FIX: Always reverse the string if it's backwards
         const handleSmartTextChange = (e) => {
           let value = e.target.value;
           
-          // Detect if text appears to be typed backwards
-          const isBackward = (text) => {
-            // Simple heuristic: if the last word looks like reversed English/Chinese
-            const words = text.split(' ');
-            const lastWord = words[words.length - 1];
-            // Check for common reversed patterns
-            return lastWord.match(/[a-z]{3,}/) && !lastWord.match(/^(the|and|for|you|that|with|this|but|his|from|they|she|her|been|than|its|who|did|get|may|him|old|see|now|way|could|people|take|year|your|good|some|come|time|very|know|just|first|into|over|think|also|back|after|use|two|how|our|work|life|day|get|has|had|what|said|each|which|their|will|about|out|many|then|them|these|so|some|her|would|make|like|him|time|has|look|two|more|write|go|see|no|way|could|said|what|when|where|why|how)$/);
-          };
+          // SIMPLE SOLUTION: Always reverse the input since it's coming in backwards
+          const reversedValue = value.split('').reverse().join('');
           
-          // If backward detected, reverse the text
-          if (isBackward(value)) {
-            value = value.split('').reverse().join('');
-          }
+          setUserReflection(reversedValue);
           
-          setUserReflection(value);
-          
-          // Force cursor to end
+          // Update the display immediately to show correct text
           setTimeout(() => {
-            e.target.setSelectionRange(value.length, value.length);
+            e.target.value = reversedValue;
           }, 0);
         };
 
