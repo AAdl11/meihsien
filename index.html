@@ -19,23 +19,139 @@
 <body>
   <div id="root"></div>
   <script type="text/babel">
-    const { useState } = React;
+    const { useState, useEffect } = React;
+
+    // ============================================
+    // 🎵 MEDIA PLACEHOLDERS - REPLACE THESE URLS
+    // ============================================
+    const MEDIA = {
+      music: {
+        welcome: '', // 平靜、希望感
+        stage1: '',  // 輕快、溫暖
+        stage2: '',  // 寧靜、禪意
+        riceIncident: '', // 感人、深沉
+        stage3: '', // 策略思考
+        stage4: '', // 協調、團隊
+        stage5: '', // 寧靜、冥想
+        finale: ''   // 鼓舞、感恩
+      },
+      images: {
+        huntersPoint: '', // Hunters Point 社區照片
+        teaCeremony: '',  // 茶道照片
+        volunteers: '',   // 志工合照
+        community: ''     // 社區服務照片
+      },
+      videos: {
+        riceIncident: '' // 生米事件影片 (60秒內)
+      }
+    };
 
     const JourneyOfKindness = () => {
-      const [stage, setStage] = useState(0);
-      const [emotion, setEmotion] = useState('');
+      // 🔄 Load saved progress on mount
+      const loadProgress = () => {
+        try {
+          const saved = localStorage.getItem('journeyOfKindness');
+          return saved ? JSON.parse(saved) : null;
+        } catch (e) {
+          console.error('Failed to load progress:', e);
+          return null;
+        }
+      };
+
+      const savedProgress = loadProgress();
+      
+      const [stage, setStage] = useState(savedProgress?.stage || 0);
+      const [emotion, setEmotion] = useState(savedProgress?.emotion || '');
       const [showResponse, setShowResponse] = useState(false);
-      const [gridPosition, setGridPosition] = useState({ x: 0, y: 0 });
-      const [deliveries, setDeliveries] = useState(0);
-      const [visitedHomes, setVisitedHomes] = useState([]);
-      const [hanoiTowers, setHanoiTowers] = useState({
-        A: [3, 2, 1],
-        B: [],
-        C: []
-      });
+      const [showWelcomeBack, setShowWelcomeBack] = useState(savedProgress && savedProgress.stage > 0);
+      
+      // Stage 1 states
+      const [gridPosition, setGridPosition] = useState(savedProgress?.gridPosition || { x: 0, y: 0 });
+      const [deliveries, setDeliveries] = useState(savedProgress?.deliveries || 0);
+      const [visitedHomes, setVisitedHomes] = useState(savedProgress?.visitedHomes || []);
+      
+      // Stage 2 states
+      const [hanoiTowers, setHanoiTowers] = useState(savedProgress?.hanoiTowers || { A: [3, 2, 1], B: [], C: [] });
       const [selectedTower, setSelectedTower] = useState(null);
-      const [moves, setMoves] = useState(0);
+      const [moves, setMoves] = useState(savedProgress?.moves || 0);
+      
+      // Stage 3 states
+      const [board, setBoard] = useState(savedProgress?.board || Array(9).fill(null));
+      const [isPlayerTurn, setIsPlayerTurn] = useState(true);
+      const [serviceComplete, setServiceComplete] = useState(savedProgress?.serviceComplete || false);
+      
+      // Stage 4 states
+      const [queensBoard, setQueensBoard] = useState(savedProgress?.queensBoard || Array(16).fill(false));
+      const [conflicts, setConflicts] = useState(savedProgress?.conflicts || 0);
+      const [queensPlaced, setQueensPlaced] = useState(savedProgress?.queensPlaced || 0);
+      
+      // Stage 5 states
+      const [meditationPhase, setMeditationPhase] = useState(savedProgress?.meditationPhase || 0);
+      const [breathCount, setBreathCount] = useState(savedProgress?.breathCount || 0);
+      const [userReflection, setUserReflection] = useState(savedProgress?.userReflection || '');
+      const [selectedAphorism, setSelectedAphorism] = useState(savedProgress?.selectedAphorism || '');
+      
       const [message, setMessage] = useState('');
+      const [currentAudio, setCurrentAudio] = useState(null);
+
+      // 💾 Save progress whenever stage changes
+      useEffect(() => {
+        if (stage > 0) {
+          const progress = {
+            stage,
+            emotion,
+            gridPosition,
+            deliveries,
+            visitedHomes,
+            hanoiTowers,
+            moves,
+            board,
+            serviceComplete,
+            queensBoard,
+            conflicts,
+            queensPlaced,
+            meditationPhase,
+            breathCount,
+            userReflection,
+            selectedAphorism,
+            savedAt: new Date().toISOString()
+          };
+          localStorage.setItem('journeyOfKindness', JSON.stringify(progress));
+        }
+      }, [stage, deliveries, moves, serviceComplete, queensPlaced, meditationPhase]);
+
+      // 🗑️ Clear progress function
+      const clearProgress = () => {
+        localStorage.removeItem('journeyOfKindness');
+      };
+
+      // 🎵 Background Music Controller
+      const playMusic = (musicUrl) => {
+        if (!musicUrl) return;
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+        }
+        const audio = new Audio(musicUrl);
+        audio.loop = true;
+        audio.volume = 0.3;
+        audio.play().catch(e => console.log('Audio play failed:', e));
+        setCurrentAudio(audio);
+      };
+
+      useEffect(() => {
+        const musicMap = {
+          0: MEDIA.music.welcome,
+          1: MEDIA.music.stage1,
+          2: MEDIA.music.stage2,
+          2.5: MEDIA.music.riceIncident,
+          3: MEDIA.music.stage3,
+          4: MEDIA.music.stage4,
+          5: MEDIA.music.stage5,
+          6: MEDIA.music.finale
+        };
+        playMusic(musicMap[stage]);
+      }, [stage]);
 
       const getEmotionResponse = (emotion) => {
         const lowerEmotion = emotion.toLowerCase();
@@ -49,9 +165,8 @@
           return '深呼吸，一步一步來。今天我們一起做些簡單而美好的事。💚 / Take a deep breath. Let\'s do something simple and beautiful together. 💚';
         } else if (lowerEmotion.includes('平靜') || lowerEmotion.includes('calm') || lowerEmotion.includes('peaceful') || lowerEmotion.includes('ok') || lowerEmotion.includes('fine')) {
           return '很好的狀態！讓我們把這份平靜帶給需要的人。💚 / Great mindset! Let\'s share this peace with others. 💚';
-        } else {
-          return '謝謝你的分享！無論心情如何，今天讓我們一起做些溫暖的事。💚 / Thank you for sharing! Let\'s do something warm together today. 💚';
         }
+        return '謝謝你的分享！無論心情如何，今天讓我們一起做些溫暖的事。💚 / Thank you for sharing! Let\'s do something warm together today. 💚';
       };
 
       const handleBeginJourney = () => {
@@ -64,12 +179,67 @@
         }
       };
 
+      // ==================== WELCOME BACK MODAL ====================
+      const WelcomeBackModal = () => (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-8">
+          <div className="bg-white rounded-2xl p-8 max-w-md text-center space-y-6 animate-fade-in">
+            <div className="text-6xl">👋</div>
+            <h2 className="text-3xl font-bold text-purple-800">歡迎回來！/ Welcome Back!</h2>
+            <p className="text-lg text-gray-700">
+              你上次的旅程還沒結束。<br/>
+              想要繼續嗎？<br/><br/>
+              Your journey is not yet complete.<br/>
+              Would you like to continue?
+            </p>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={() => setShowWelcomeBack(false)}
+                className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-3 rounded-full text-lg font-bold hover:scale-105 transition-transform"
+              >
+                繼續旅程 / Continue
+              </button>
+              <button
+                onClick={() => {
+                  clearProgress();
+                  setStage(0);
+                  setEmotion('');
+                  setGridPosition({ x: 0, y: 0 });
+                  setDeliveries(0);
+                  setVisitedHomes([]);
+                  setHanoiTowers({ A: [3, 2, 1], B: [], C: [] });
+                  setMoves(0);
+                  setBoard(Array(9).fill(null));
+                  setServiceComplete(false);
+                  setQueensBoard(Array(16).fill(false));
+                  setConflicts(0);
+                  setQueensPlaced(0);
+                  setMeditationPhase(0);
+                  setBreathCount(0);
+                  setUserReflection('');
+                  setSelectedAphorism('');
+                  setShowWelcomeBack(false);
+                }}
+                className="bg-gray-400 text-white px-8 py-3 rounded-full text-lg font-bold hover:scale-105 transition-transform"
+              >
+                重新開始 / Start Over
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+
+      // ==================== STAGE 0: WELCOME ====================
       const WelcomeScreen = () => (
         <div className="min-h-screen bg-gradient-to-b from-blue-900 via-purple-800 to-orange-500 flex items-center justify-center p-8 text-white">
           <div className="max-w-2xl text-center space-y-8">
             <div className="text-6xl mb-4">🌅</div>
             <h1 className="text-5xl font-bold mb-4">Journey of Kindness</h1>
             <h2 className="text-3xl mb-8">慈悲之旅</h2>
+            
+            {MEDIA.images.volunteers && (
+              <img src={MEDIA.images.volunteers} alt="Tzu Chi Volunteers" className="w-48 h-48 mx-auto rounded-full object-cover mb-4" />
+            )}
+            
             <div className="bg-black/30 p-6 rounded-lg backdrop-blur">
               <p className="text-xl leading-relaxed">
                 在舊金山，每天有這樣一群人，用愛心點亮社區的每個角落。<br/><br/>
@@ -105,15 +275,14 @@
               </div>
             ) : (
               <div className="bg-white/20 backdrop-blur-lg p-8 rounded-2xl border-2 border-white/30 animate-fade-in">
-                <p className="text-2xl leading-relaxed">
-                  {getEmotionResponse(emotion)}
-                </p>
+                <p className="text-2xl leading-relaxed">{getEmotionResponse(emotion)}</p>
               </div>
             )}
           </div>
         </div>
       );
 
+      // ==================== STAGE 1: MORNING LIGHT ====================
       const Stage1 = () => {
         const gridSize = 5;
         const homes = [[4, 1], [2, 3], [4, 4], [1, 4], [3, 0]];
@@ -135,17 +304,19 @@
         return (
           <div className="min-h-screen bg-gradient-to-br from-green-100 to-blue-100 p-8">
             <div className="max-w-4xl mx-auto">
+              {MEDIA.images.huntersPoint && (
+                <div className="mb-6 text-center">
+                  <img src={MEDIA.images.huntersPoint} alt="Hunters Point" className="w-full max-w-2xl mx-auto rounded-xl shadow-lg" />
+                </div>
+              )}
+              
               <div className="text-center mb-8">
-                <h2 className="text-4xl font-bold text-green-800 mb-4">
-                  Stage 1: 早晨覺醒 / Morning Light
-                </h2>
+                <h2 className="text-4xl font-bold text-green-800 mb-4">Stage 1: 早晨覺醒 / Morning Light</h2>
                 <p className="text-xl text-gray-700">
                   送物資到 Hunters Point 的 5 個家庭<br/>
                   Deliver supplies to 5 families in Hunters Point
                 </p>
-                <div className="mt-4 text-2xl font-bold text-green-600">
-                  送達: {deliveries}/5 deliveries
-                </div>
+                <div className="mt-4 text-2xl font-bold text-green-600">送達: {deliveries}/5 deliveries</div>
                 {message && <div className="mt-2 text-lg text-green-600 font-bold">{message}</div>}
               </div>
 
@@ -165,8 +336,7 @@
                         className={`aspect-square flex items-center justify-center text-4xl rounded-lg transition-all ${
                           isVolunteer ? 'bg-green-400 scale-110' : 
                           isVisited ? 'bg-gradient-to-br from-pink-300 to-purple-300' : 
-                          isHome ? 'bg-yellow-200' : 
-                          'bg-gray-100'
+                          isHome ? 'bg-yellow-200' : 'bg-gray-100'
                         }`}
                       >
                         {isVolunteer ? '💚' : isVisited ? '✨' : isHome ? '🏠' : ''}
@@ -195,10 +365,7 @@
                       Now at Tzu Chi Academy, let's learn etiquette and contemplation through tea ceremony.
                     </p>
                   </div>
-                  <button
-                    onClick={() => setStage(2)}
-                    className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform"
-                  >
+                  <button onClick={() => setStage(2)} className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform">
                     繼續 / Continue →
                   </button>
                 </div>
@@ -208,6 +375,7 @@
         );
       };
 
+      // ==================== STAGE 2: TEA CEREMONY ====================
       const Stage2 = () => {
         const pancakeNames = {
           1: { name: '感恩', en: 'Gratitude', quote: '感恩不僅是一種禮貌，更是一種內心修養 / Gratitude is not just courtesy, but inner cultivation' },
@@ -250,11 +418,15 @@
         return (
           <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-8">
             <div className="max-w-6xl mx-auto">
+              {MEDIA.images.teaCeremony && (
+                <div className="mb-6 text-center">
+                  <img src={MEDIA.images.teaCeremony} alt="Tea Ceremony" className="w-full max-w-2xl mx-auto rounded-xl shadow-lg" />
+                </div>
+              )}
+              
               <div className="text-center mb-8">
                 <div className="text-6xl mb-4">🍵</div>
-                <h2 className="text-4xl font-bold text-green-800 mb-4">
-                  Stage 2: 茶道人文 / Spiritual Tea Ceremony
-                </h2>
+                <h2 className="text-4xl font-bold text-green-800 mb-4">Stage 2: 茶道人文 / Spiritual Tea Ceremony</h2>
                 <p className="text-xl text-gray-700 mb-4">
                   慈濟人文學校 - 堆疊美德煎餅<br/>
                   Tzu Chi Academy - Stack the virtue pancakes
@@ -272,9 +444,7 @@
                   {['A', 'B', 'C'].map((tower) => (
                     <div key={tower} className="flex flex-col items-center">
                       <div className="text-2xl font-bold mb-4 text-gray-700">
-                        {tower === 'A' && '茶座 A'}
-                        {tower === 'B' && '茶座 B'}
-                        {tower === 'C' && '茶座 C'}
+                        茶座 {tower}
                       </div>
                       <div
                         onClick={() => handleTowerClick(tower)}
@@ -309,10 +479,7 @@
                       But in 2000, one moment changed everything...
                     </p>
                   </div>
-                  <button
-                    onClick={() => setStage(2.5)}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform"
-                  >
+                  <button onClick={() => setStage(2.5)} className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform">
                     繼續 / Continue →
                   </button>
                 </div>
@@ -322,17 +489,24 @@
         );
       };
 
+      // ==================== STAGE 2.5: RICE INCIDENT ====================
       const RiceIncident = () => (
         <div className="min-h-screen bg-gradient-to-br from-amber-100 to-orange-200 flex items-center justify-center p-8">
           <div className="max-w-3xl bg-white p-12 rounded-2xl shadow-2xl">
-            <div className="text-6xl text-center mb-8">🍚</div>
-            <h2 className="text-4xl font-bold text-center text-gray-800 mb-8">
-              生米事件 / The Raw Rice Moment
-            </h2>
+            {MEDIA.videos.riceIncident ? (
+              <div className="mb-8">
+                <video controls autoPlay className="w-full rounded-xl shadow-lg" src={MEDIA.videos.riceIncident}>
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            ) : (
+              <div className="text-6xl text-center mb-8">🍚</div>
+            )}
+            
+            <h2 className="text-4xl font-bold text-center text-gray-800 mb-8">生米事件 / The Raw Rice Moment</h2>
             <div className="space-y-6 text-lg text-gray-700 leading-relaxed">
               <p className="text-center font-bold">
-                <strong>2000 年，Hunters Point 小學<br/>
-                Year 2000, Hunters Point Elementary School</strong>
+                <strong>2000 年，Hunters Point 小學<br/>Year 2000, Hunters Point Elementary School</strong>
               </p>
               <p>
                 慈濟志工在學校發放食物袋和書籍。<br/>
@@ -354,10 +528,7 @@
               </p>
             </div>
             <div className="mt-12 text-center">
-              <button
-                onClick={() => setStage(3)}
-                className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform"
-              >
+              <button onClick={() => setStage(3)} className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform">
                 繼續服務之旅 / Continue the Journey →
               </button>
             </div>
@@ -365,32 +536,503 @@
         </div>
       );
 
+      // ==================== STAGE 3: COMMUNITY SERVICE (Minimax) ====================
+      const Stage3 = () => {
+        const serviceTypes = ['🍚', '📚', '🏥'];
+        
+        const minimax = (board, depth, isMaximizing) => {
+          const winner = checkWinner(board);
+          if (winner === '🏥') return 10 - depth;
+          if (winner === '💚') return depth - 10;
+          if (board.every(cell => cell !== null)) return 0;
+          
+          if (isMaximizing) {
+            let bestScore = -Infinity;
+            for (let i = 0; i < 9; i++) {
+              if (board[i] === null) {
+                board[i] = '🏥';
+                const score = minimax(board, depth + 1, false);
+                board[i] = null;
+                bestScore = Math.max(score, bestScore);
+              }
+            }
+            return bestScore;
+          } else {
+            let bestScore = Infinity;
+            for (let i = 0; i < 9; i++) {
+              if (board[i] === null) {
+                board[i] = '💚';
+                const score = minimax(board, depth + 1, true);
+                board[i] = null;
+                bestScore = Math.min(score, bestScore);
+              }
+            }
+            return bestScore;
+          }
+        };
+
+        const checkWinner = (board) => {
+          const lines = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
+          ];
+          for (let line of lines) {
+            const [a, b, c] = line;
+            if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+              return board[a];
+            }
+          }
+          return null;
+        };
+
+        const handlePlayerMove = (index) => {
+          if (board[index] || !isPlayerTurn || serviceComplete) return;
+          
+          const newBoard = [...board];
+          newBoard[index] = '💚';
+          setBoard(newBoard);
+          
+          const winner = checkWinner(newBoard);
+          if (winner || newBoard.every(cell => cell !== null)) {
+            setServiceComplete(true);
+            setMessage(winner === '💚' 
+              ? '服務網建立成功！愛心連成一線！/ Service network established! Hearts connected!' 
+              : '合作完成！每個角落都有關懷！/ Cooperation complete! Care reaches every corner!');
+            return;
+          }
+          
+          setIsPlayerTurn(false);
+          
+          setTimeout(() => {
+            let bestScore = -Infinity;
+            let bestMove = -1;
+            for (let i = 0; i < 9; i++) {
+              if (newBoard[i] === null) {
+                newBoard[i] = '🏥';
+                const score = minimax(newBoard, 0, false);
+                newBoard[i] = null;
+                if (score > bestScore) {
+                  bestScore = score;
+                  bestMove = i;
+                }
+              }
+            }
+            
+            if (bestMove !== -1) {
+              newBoard[bestMove] = '🏥';
+              setBoard(newBoard);
+              
+              const winner = checkWinner(newBoard);
+              if (winner || newBoard.every(cell => cell !== null)) {
+                setServiceComplete(true);
+                setMessage('社區需求分析完成！智慧與愛心的結合！/ Community needs analysis complete! Wisdom meets compassion!');
+              } else {
+                setIsPlayerTurn(true);
+              }
+            }
+          }, 500);
+        };
+
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-8">
+            <div className="max-w-4xl mx-auto">
+              {MEDIA.images.community && (
+                <div className="mb-6 text-center">
+                  <img src={MEDIA.images.community} alt="Community Service" className="w-full max-w-2xl mx-auto rounded-xl shadow-lg" />
+                </div>
+              )}
+              
+              <div className="text-center mb-8">
+                <div className="text-6xl mb-4">💚</div>
+                <h2 className="text-4xl font-bold text-purple-800 mb-4">
+                  Stage 3: 社區服務 / Community Service
+                </h2>
+                <p className="text-xl text-gray-700 mb-4">
+                  生米事件後，慈濟決定長期服務 Hunters Point<br/>
+                  資源有限，必須策略性分配<br/><br/>
+                  After the raw rice incident, Tzu Chi committed to long-term service in Hunters Point<br/>
+                  With limited resources, strategic allocation is essential
+                </p>
+                <p className="text-lg text-gray-600 mb-4">
+                  💚 志工的愛心決策 vs 🏥 AI 社區需求分析<br/>
+                  Volunteer compassion decisions vs AI community needs analysis
+                </p>
+                <p className="text-md text-gray-500">
+                  這不是對抗，而是智慧與愛心的合作<br/>
+                  This is not competition, but collaboration between wisdom and compassion
+                </p>
+                {message && (
+                  <div className="mt-4 bg-green-50 p-4 rounded-lg border-2 border-green-300">
+                    <p className="text-lg text-green-800 font-bold">{message}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-white p-8 rounded-xl shadow-2xl mb-6">
+                <div className="grid grid-cols-3 gap-4">
+                  {board.map((cell, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handlePlayerMove(idx)}
+                      disabled={!isPlayerTurn || cell !== null || serviceComplete}
+                      className={`aspect-square text-6xl flex items-center justify-center rounded-lg transition-all ${
+                        cell ? 'bg-gradient-to-br from-green-200 to-blue-200' : 'bg-gray-100 hover:bg-gray-200'
+                      } ${!isPlayerTurn || cell || serviceComplete ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105'}`}
+                    >
+                      {cell}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="text-center text-lg text-gray-600 mb-6">
+                <p className="font-bold mb-2">三種服務類型 / Three Types of Services:</p>
+                <p>🍚 食物援助 Food Assistance | 📚 教育支持 Education Support | 🏥 醫療關懷 Healthcare</p>
+                <p className="mt-4">點擊空格建立服務點，連成三線建立完整服務網<br/>
+                Click empty cells to establish service points, connect three to build a complete network</p>
+              </div>
+
+              {serviceComplete && (
+                <div className="mt-8 text-center">
+                  <div className="bg-purple-100 p-6 rounded-xl mb-4">
+                    <p className="text-xl text-purple-800 leading-relaxed">
+                      服務網建立了！25 年來，這份愛從未間斷。<br/>
+                      但如何優化志工配置？讓每個角落都能得到關懷？<br/><br/>
+                      Service network established! For 25 years, this love has never stopped.<br/>
+                      But how do we optimize volunteer allocation so every corner receives care?
+                    </p>
+                  </div>
+                  <button onClick={() => setStage(4)} className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform">
+                    繼續 / Continue →
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      };
+
+      // ==================== STAGE 4: VOLUNTEER HARMONY (N-Queens) ====================
+      const Stage4 = () => {
+        const gridSize = 4;
+        
+        const checkConflicts = (board) => {
+          let conflictCount = 0;
+          const positions = [];
+          board.forEach((hasQueen, idx) => {
+            if (hasQueen) positions.push({ row: Math.floor(idx / gridSize), col: idx % gridSize });
+          });
+          
+          for (let i = 0; i < positions.length; i++) {
+            for (let j = i + 1; j < positions.length; j++) {
+              const p1 = positions[i], p2 = positions[j];
+              if (p1.row === p2.row || p1.col === p2.col || Math.abs(p1.row - p2.row) === Math.abs(p1.col - p2.col)) {
+                conflictCount++;
+              }
+            }
+          }
+          return conflictCount;
+        };
+
+        const handleCellClick = (index) => {
+          const newBoard = [...queensBoard];
+          newBoard[index] = !newBoard[index];
+          setQueensBoard(newBoard);
+          
+          const placed = newBoard.filter(Boolean).length;
+          setQueensPlaced(placed);
+          setConflicts(checkConflicts(newBoard));
+        };
+
+        const isComplete = queensPlaced === 4 && conflicts === 0;
+
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-100 p-8">
+            <div className="max-w-4xl mx-auto">
+              <div className="text-center mb-8">
+                <div className="text-6xl mb-4">👥</div>
+                <h2 className="text-4xl font-bold text-orange-800 mb-4">
+                  Stage 4: 志工排班 / Volunteer Harmony
+                </h2>
+                <p className="text-xl text-gray-700 mb-4">
+                  社區有多個服務點，每個志工有時間限制<br/>
+                  要避免衝突，最大化覆蓋範圍<br/><br/>
+                  Multiple service points in the community, each volunteer has time constraints<br/>
+                  Avoid conflicts, maximize coverage
+                </p>
+                <div className="text-lg text-gray-600 mb-2">
+                  志工人數 Volunteers: {queensPlaced}/4 | 衝突數 Conflicts: {conflicts}
+                </div>
+                <p className="text-md text-gray-500">
+                  完美排班：4 個志工，0 個衝突<br/>
+                  Perfect schedule: 4 volunteers, 0 conflicts
+                </p>
+              </div>
+
+              <div className="bg-white p-8 rounded-xl shadow-2xl mb-6">
+                <div className="grid grid-cols-4 gap-2">
+                  {queensBoard.map((hasQueen, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleCellClick(idx)}
+                      className={`aspect-square text-5xl flex items-center justify-center rounded-lg transition-all ${
+                        hasQueen ? 'bg-gradient-to-br from-orange-300 to-red-300' : 'bg-gray-100 hover:bg-gray-200'
+                      } cursor-pointer hover:scale-105`}
+                    >
+                      {hasQueen ? '👤' : ''}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="text-center text-lg text-gray-600 mb-6">
+                <p className="font-bold mb-2">如何放置志工？/ How to place volunteers?</p>
+                <p>點擊格子放置志工 👤 / Click cells to place volunteers 👤</p>
+                <p className="mt-2 text-md">
+                  目標：放置 4 個志工，避免同行、同列、同對角線衝突<br/>
+                  Goal: Place 4 volunteers, avoiding same row, column, or diagonal conflicts
+                </p>
+              </div>
+
+              {isComplete && (
+                <div className="mt-8 text-center">
+                  <div className="bg-orange-100 p-6 rounded-xl mb-4">
+                    <p className="text-xl text-orange-800 leading-relaxed">
+                      完美配置！志工排班完成！✨<br/>
+                      Perfect arrangement! Volunteer scheduling complete! ✨<br/><br/>
+                      一天的服務結束了。從早晨送物資，到茶道靜思，到社區服務，到志工排班...<br/>
+                      志工們付出了很多，但志工的心也需要重置與療癒。<br/><br/>
+                      The day's service is done. From morning deliveries, tea ceremony meditation, community service, to volunteer scheduling...<br/>
+                      Volunteers have given so much, but their hearts also need rest and healing.<br/><br/>
+                      讓我們進入寧靜的門廊，重拾內心的平靜...<br/>
+                      Let us enter the peaceful portico, to restore inner peace...
+                    </p>
+                  </div>
+                  <button onClick={() => setStage(5)} className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform">
+                    進入寧靜門廊 / Enter Ataraxy Portico →
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      };
+
+      // ==================== STAGE 5: ATARAXY PORTICO ====================
+      const Stage5 = () => {
+        const phases = [
+          { 
+            title: '暫停見證 / Witness', 
+            prompt: '見證當下，不加評判 / Witness the moment without judgment',
+            description: '停下來，感受此刻。不去評判好壞，只是觀察。/ Pause and feel this moment. Don\'t judge good or bad, just observe.',
+            icon: '👁️' 
+          },
+          { 
+            title: '呼吸釋放 / Breathe', 
+            prompt: '深呼吸釋放壓力 / Deep breath release stress',
+            description: '跟著呼吸，讓壓力隨著氣息離開身體。/ Follow your breath, let stress leave your body with each exhale.',
+            icon: '🌬️' 
+          },
+          { 
+            title: '哲學低語 / Reflect', 
+            prompt: '轉照內心，而非外物 / Look inward, not outward',
+            description: '答案不在外面，而在你的內心深處。/ The answer is not outside, but deep within your heart.',
+            icon: '💭' 
+          },
+          { 
+            title: '回聲記錄 / Record', 
+            prompt: '記錄此刻的領悟 / Record the insight of this moment',
+            description: '寫下這一刻你感受到的智慧。/ Write down the wisdom you feel in this moment.',
+            icon: '📝' 
+          },
+          { 
+            title: '重返之門 / Carry Forward', 
+            prompt: '帶著平靜，重新出發 / Carry this peace forward and start anew',
+            description: '把這份平靜帶回生活，繼續前行。/ Bring this peace back to life, and continue forward.',
+            icon: '🚪' 
+          }
+        ];
+
+        const aphorisms = [
+          '感恩不僅是一種禮貌，更是一種內心修養 / Gratitude is not just courtesy, but inner cultivation',
+          '尊重生命，珍惜當下 / Respect life, cherish the present',
+          '愛是付出，不求回報 / Love is giving without expecting return',
+          '慈悲沒有敵人，智慧不起煩惱 / Compassion has no enemies, wisdom brings no troubles',
+          '心靜自然涼 / A calm heart naturally brings coolness'
+        ];
+
+        const handleBreath = () => {
+          setBreathCount(breathCount + 1);
+          if (breathCount + 1 >= 3) {
+            setMeditationPhase(2);
+          }
+        };
+
+        const handleReflection = () => {
+          if (userReflection.trim()) {
+            const randomAphorism = aphorisms[Math.floor(Math.random() * aphorisms.length)];
+            setSelectedAphorism(randomAphorism);
+            setMeditationPhase(3);
+          }
+        };
+
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-200 p-8 flex items-center justify-center">
+            <div className="max-w-3xl w-full bg-white p-12 rounded-3xl shadow-2xl">
+              <div className="text-center mb-8">
+                <div className="text-6xl mb-4">🌸</div>
+                <h2 className="text-4xl font-bold text-indigo-800 mb-4">
+                  Ataraxy Portico<br/>寧靜門廊
+                </h2>
+                <p className="text-xl text-gray-700 mb-2">
+                  {phases[meditationPhase].title}
+                </p>
+                <p className="text-md text-gray-600 italic">
+                  {phases[meditationPhase].description}
+                </p>
+              </div>
+
+              <div className="space-y-8">
+                {meditationPhase === 0 && (
+                  <div className="text-center space-y-6">
+                    <div className="text-6xl">{phases[0].icon}</div>
+                    <p className="text-2xl text-gray-700">{phases[0].prompt}</p>
+                    <div className="bg-indigo-50 p-6 rounded-xl">
+                      <p className="text-lg text-gray-600">
+                        服務了一天，讓我們停下腳步，感受內心的聲音。<br/>
+                        After a day of service, let us pause and listen to our inner voice.
+                      </p>
+                    </div>
+                    <button onClick={() => setMeditationPhase(1)} className="bg-indigo-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform">
+                      準備好了 / I'm Ready
+                    </button>
+                  </div>
+                )}
+
+                {meditationPhase === 1 && (
+                  <div className="text-center space-y-6">
+                    <div className="text-6xl">{phases[1].icon}</div>
+                    <p className="text-2xl text-gray-700">{phases[1].prompt}</p>
+                    <div className="bg-blue-50 p-6 rounded-xl">
+                      <p className="text-lg text-gray-600">
+                        深深地吸氣...慢慢地吐氣...感受壓力離開身體。<br/>
+                        Breathe in deeply... Exhale slowly... Feel the stress leaving your body.
+                      </p>
+                    </div>
+                    <div className="text-lg text-gray-600">呼吸次數 Breaths: {breathCount}/3</div>
+                    <button onClick={handleBreath} className="bg-blue-500 text-white px-16 py-6 rounded-full text-2xl font-bold hover:scale-110 transition-transform">
+                      深呼吸 / Breathe
+                    </button>
+                  </div>
+                )}
+
+                {meditationPhase === 2 && (
+                  <div className="text-center space-y-6">
+                    <div className="text-6xl">{phases[2].icon}</div>
+                    <p className="text-2xl text-gray-700 mb-6">{phases[2].prompt}</p>
+                    <div className="bg-purple-50 p-6 rounded-xl mb-4">
+                      <p className="text-lg text-gray-600">
+                        今天的服務中，什麼觸動了你的心？<br/>
+                        What touched your heart during today's service?
+                      </p>
+                    </div>
+                    <textarea
+                      value={userReflection}
+                      onChange={(e) => setUserReflection(e.target.value)}
+                      placeholder="寫下你此刻的感受... / Write your reflections..."
+                      className="w-full h-32 p-4 border-2 border-indigo-300 rounded-lg text-lg"
+                    />
+                    <button onClick={handleReflection} disabled={!userReflection.trim()} className="bg-indigo-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform disabled:bg-gray-400">
+                      繼續 / Continue
+                    </button>
+                  </div>
+                )}
+
+                {meditationPhase === 3 && (
+                  <div className="text-center space-y-6">
+                    <div className="text-6xl">{phases[3].icon}</div>
+                    <p className="text-2xl text-gray-700">{phases[3].prompt}</p>
+                    <div className="bg-green-50 p-6 rounded-xl mb-4">
+                      <p className="text-md text-gray-600 mb-4">
+                        根據你的反思，這是給你的靜思語：<br/>
+                        Based on your reflection, here is a Jing Si Aphorism for you:
+                      </p>
+                    </div>
+                    <div className="bg-indigo-50 p-6 rounded-xl border-2 border-indigo-300">
+                      <p className="text-xl text-indigo-800 font-semibold leading-relaxed">{selectedAphorism}</p>
+                    </div>
+                    <button onClick={() => setMeditationPhase(4)} className="bg-purple-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform">
+                      記錄完成 / Recorded
+                    </button>
+                  </div>
+                )}
+
+                {meditationPhase === 4 && (
+                  <div className="text-center space-y-6">
+                    <div className="text-6xl">{phases[4].icon}</div>
+                    <p className="text-2xl text-gray-700 mb-4">{phases[4].prompt}</p>
+                    <div className="bg-green-50 p-8 rounded-xl">
+                      <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+                        你已完成今天的心靈旅程。<br/>
+                        從早晨的送愛心，到茶道的靜思，<br/>
+                        從社區的服務，到排班的智慧，<br/>
+                        再到此刻的內心平靜。<br/><br/>
+                        You have completed today's spiritual journey.<br/>
+                        From morning deliveries of love, to tea ceremony contemplation,<br/>
+                        From community service, to scheduling wisdom,<br/>
+                        To this moment of inner peace.<br/><br/>
+                        帶著這份平靜，繼續前行。<br/>
+                        Carry this peace forward.
+                      </p>
+                    </div>
+                    <button onClick={() => setStage(6)} className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform">
+                      完成旅程 / Complete Journey →
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      // ==================== STAGE 6: FINALE ====================
       const FinalStages = () => (
         <div className="min-h-screen bg-gradient-to-br from-purple-100 to-pink-100 p-8 flex items-center justify-center">
           <div className="max-w-2xl text-center space-y-8">
             <div className="text-6xl mb-4">🌸</div>
-            <h2 className="text-4xl font-bold text-purple-800">
-              旅程完成 / Journey Complete
-            </h2>
+            <h2 className="text-4xl font-bold text-purple-800">旅程完成 / Journey Complete</h2>
+            
+            {MEDIA.images.volunteers && (
+              <img src={MEDIA.images.volunteers} alt="Volunteers" className="w-full max-w-xl mx-auto rounded-xl shadow-lg mb-6" />
+            )}
+            
             <div className="bg-white p-8 rounded-xl shadow-xl space-y-4 text-lg text-gray-700">
               <p><strong>你完成了一天的志工服務！<br/>You completed a day of volunteer service!</strong></p>
               <div className="space-y-2 text-left">
                 <p>✅ Stage 1: 送達 5 個家庭 / Delivered to 5 families</p>
                 <p>✅ Stage 2: 學習茶道美德 / Learned tea ceremony virtues</p>
-                <p>✅ 見證生米事件的啟發 / Witnessed the raw rice moment</p>
+                <p>✅ 見證生米事件 / Witnessed the raw rice moment</p>
+                <p>✅ Stage 3: 建立服務網 / Built service network</p>
+                <p>✅ Stage 4: 優化志工排班 / Optimized volunteer scheduling</p>
+                <p>✅ Stage 5: 心靈重置 / Spiritual reset</p>
               </div>
               <div className="mt-8 pt-8 border-t-2 border-purple-200">
                 <p className="text-xl font-bold text-purple-700 mb-4">
                   你願意成為真正的慈濟志工嗎？<br/>
                   Would you like to become a real Tzu Chi volunteer?
                 </p>
-                <p className="text-gray-600">
-                  聯繫 / Contact: hsu.meihsien@gmail.com
-                </p>
+                <p className="text-gray-600 mb-4">聯繫 / Contact: hsu.meihsien@gmail.com</p>
+                <div className="flex justify-center gap-4 mt-4">
+                  <a href="https://www.facebook.com/tzuchisf" target="_blank" className="text-blue-600 hover:text-blue-800 text-2xl">📘 Facebook</a>
+                  <a href="https://www.instagram.com/tzuchisf" target="_blank" className="text-pink-600 hover:text-pink-800 text-2xl">📸 Instagram</a>
+                </div>
               </div>
             </div>
             <button
               onClick={() => {
+                clearProgress();
                 setStage(0);
                 setEmotion('');
                 setShowResponse(false);
@@ -399,6 +1041,20 @@
                 setVisitedHomes([]);
                 setHanoiTowers({ A: [3, 2, 1], B: [], C: [] });
                 setMoves(0);
+                setBoard(Array(9).fill(null));
+                setIsPlayerTurn(true);
+                setServiceComplete(false);
+                setQueensBoard(Array(16).fill(false));
+                setConflicts(0);
+                setQueensPlaced(0);
+                setMeditationPhase(0);
+                setBreathCount(0);
+                setUserReflection('');
+                setSelectedAphorism('');
+                if (currentAudio) {
+                  currentAudio.pause();
+                  currentAudio.currentTime = 0;
+                }
               }}
               className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-12 py-4 rounded-full text-xl font-bold hover:scale-105 transition-transform"
             >
@@ -410,11 +1066,15 @@
 
       return (
         <>
+          {showWelcomeBack && <WelcomeBackModal />}
           {stage === 0 && <WelcomeScreen />}
           {stage === 1 && <Stage1 />}
           {stage === 2 && <Stage2 />}
           {stage === 2.5 && <RiceIncident />}
-          {stage >= 3 && <FinalStages />}
+          {stage === 3 && <Stage3 />}
+          {stage === 4 && <Stage4 />}
+          {stage === 5 && <Stage5 />}
+          {stage >= 6 && <FinalStages />}
         </>
       );
     };
