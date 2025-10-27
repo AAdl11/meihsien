@@ -40,28 +40,29 @@
     // 🎵 MEDIA PLACEHOLDERS - REPLACE THESE URLS
     // ============================================
     const MEDIA = {
-      music: {
-        welcome: '', // 平靜、希望感
-        stage1: '',  // 輕快、溫暖
-        stage2: '',  // 寧靜、禪意
-        riceIncident: '', // 感人、深沉
-        stage3: '', // 策略思考
-        stage4: '', // 協調、團隊
-        stage5: '', // 寧靜、冥想
-        finale: ''   // 鼓舞、感恩
-      },
-      images: {
-        huntersPoint: '', // Hunters Point 社區照片
-        teaCeremony: '',  // 茶道照片
-        volunteers: '',   // 志工合照
-        community: '',    // 社區服務照片
-        fbQR: '',        // Facebook QR Code 圖片 URL
-        igQR: ''         // Instagram QR Code 圖片 URL
-      },
-      videos: {
-        riceIncident: '' // 生米事件影片 (60秒內)
-      }
-    };
+  music: {
+    welcome: 'https://drive.google.com/uc?export=download&id=1zwF5UETwXHBbpdtltKLofP1hsbQp4aHD',
+    stage1: 'https://drive.google.com/uc?export=download&id=1jRTI5FaWT2WwxGQHaWW6C6wnXXbgcsOA',
+    stage2: 'https://drive.google.com/uc?export=download&id=1tCry0YWbpYfFsYTuEH6TWPmPy527iOJE',
+    riceIncident: 'https://drive.google.com/uc?export=download&id=1GnD3l1PON4WObEyxB_p7fOBOPiwu4t8z',
+    stage3: 'https://drive.google.com/uc?export=download&id=1t2ZbHytOfGudmgKdbtkNQwDsn2LVoqz-',
+    stage4: 'https://drive.google.com/uc?export=download&id=19E_MIbzaqsY84dJpcvtet2fA2cKXe0zT',
+    stage5: 'https://drive.google.com/uc?export=download&id=1xB6JV-XMXIQNyRNwGLsg6TtfxSEZoigv',
+    finale: 'https://drive.google.com/uc?export=download&id=1BoV05CjFHWvlZG-vDbjYzvFjZmCDkPHL'
+  },
+  images: {
+    huntersPoint: '',
+    teaCeremony: '',
+    volunteers: '',
+    community: '',
+    fbQR: '',
+    igQR: ''
+  },
+  videos: {
+    riceIncident: '',
+    openingVideo: 'https://drive.google.com/uc?export=download&id=1cUDIb5cKnb1wtAPLwkDxV6QK2HMleVmy'
+  }
+};
 
     const JourneyOfKindness = () => {
       // 🔄 Load saved progress on mount
@@ -78,6 +79,8 @@
       const savedProgress = loadProgress();
       
       const [stage, setStage] = useState(savedProgress?.stage || 0);
+      const [showOpeningVideo, setShowOpeningVideo] = useState(!savedProgress || savedProgress.stage === 0);
+      const [videoEnded, setVideoEnded] = useState(false);
       const [emotion, setEmotion] = useState(savedProgress?.emotion || '');
       const [showResponse, setShowResponse] = useState(false);
       const [showWelcomeBack, setShowWelcomeBack] = useState(savedProgress && savedProgress.stage > 0);
@@ -255,6 +258,38 @@
       );
 
       // ==================== STAGE 0: WELCOME ====================
+      // ==================== OPENING VIDEO ====================
+const OpeningVideo = () => {
+  const handleVideoEnd = () => {
+    setVideoEnded(true);
+    setShowOpeningVideo(false);
+  };
+
+  const handleSkip = () => {
+    setShowOpeningVideo(false);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+      <div className="relative w-full h-full">
+        <video
+          className="w-full h-full object-contain"
+          autoPlay
+          onEnded={handleVideoEnd}
+          src={MEDIA.videos.openingVideo}
+        >
+          Your browser does not support the video tag.
+        </video>
+        <button
+          onClick={handleSkip}
+          className="absolute top-4 right-4 bg-white/80 hover:bg-white text-black px-6 py-3 rounded-full font-bold transition-all"
+        >
+          Skip / 跳过
+        </button>
+      </div>
+    </div>
+  );
+};
       const WelcomeScreen = () => (
         <div className="min-h-screen bg-gradient-to-b from-blue-900 via-purple-800 to-orange-500 flex items-center justify-center p-8 text-white">
           <div className="max-w-2xl text-center space-y-8">
@@ -1276,19 +1311,20 @@
         </div>
       );
 
-      return (
-        <>
-          {showWelcomeBack && <WelcomeBackModal />}
-          {stage === 0 && <WelcomeScreen />}
-          {stage === 1 && <Stage1 />}
-          {stage === 2 && <Stage2 />}
-          {stage === 2.5 && <RiceIncident />}
-          {stage === 3 && <Stage3 />}
-          {stage === 4 && <Stage4 />}
-          {stage === 5 && <Stage5 />}
-          {stage >= 6 && <FinalStages />}
-        </>
-      );
+    return (
+  <>
+    {showOpeningVideo && <OpeningVideo />}
+    {showWelcomeBack && <WelcomeBackModal />}
+    {!showOpeningVideo && stage === 0 && <WelcomeScreen />}
+    {!showOpeningVideo && stage === 1 && <Stage1 />}
+    {!showOpeningVideo && stage === 2 && <Stage2 />}
+    {!showOpeningVideo && stage === 2.5 && <RiceIncident />}
+    {!showOpeningVideo && stage === 3 && <Stage3 />}
+    {!showOpeningVideo && stage === 4 && <Stage4 />}
+    {!showOpeningVideo && stage === 5 && <Stage5 />}
+    {!showOpeningVideo && stage >= 6 && <FinalStages />}
+  </>
+); 
     };
 
     ReactDOM.render(React.createElement(JourneyOfKindness), document.getElementById('root'));
