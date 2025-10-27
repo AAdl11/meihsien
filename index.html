@@ -275,6 +275,8 @@ const OpeningVideo = () => {
         <video
           className="w-full h-full object-contain"
           autoPlay
+          muted
+          playsInline
           onEnded={handleVideoEnd}
           src={MEDIA.videos.openingVideo}
         >
