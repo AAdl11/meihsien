@@ -30,6 +30,70 @@
       writing-mode: horizontal-tb !important;
     }
   </style>
+  <style>
+  .music-control {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(26, 84, 144, 0.9);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    font-size: 16px;
+    transition: all 0.3s;
+  }
+  
+  .music-control:hover {
+    background: rgba(26, 84, 144, 1);
+    transform: scale(1.05);
+  }
+</style>
+
+<script>
+// 音乐系统
+const MUSIC_FILES = {
+  welcome: 'music/welcome.mp3',
+  stage1: 'music/stage1.mp3',
+  stage2: 'music/stage2.mp3',
+  riceIncident: 'music/rice_incident.mp3',
+  stage3: 'music/stage3.mp3',
+  stage4: 'music/stage4.mp3',
+  stage5: 'music/stage5.mp3',
+  finale: 'music/finale.mp3'
+};
+
+let currentAudio = null;
+let isMusicPlaying = false;
+
+function playMusic(musicKey) {
+  if (currentAudio) {
+    currentAudio.pause();
+  }
+  
+  currentAudio = new Audio(MUSIC_FILES[musicKey]);
+  currentAudio.loop = true;
+  currentAudio.volume = 0.3;
+  currentAudio.play().catch(err => console.log('Music play failed:', err));
+  isMusicPlaying = true;
+}
+
+function toggleMusic() {
+  if (!currentAudio) return;
+  
+  if (isMusicPlaying) {
+    currentAudio.pause();
+    isMusicPlaying = false;
+    document.getElementById('musicBtn').textContent = '🔇 音乐已暂停';
+  } else {
+    currentAudio.play();
+    isMusicPlaying = true;
+    document.getElementById('musicBtn').textContent = '🎵 播放中';
+  }
+}
+</script>
 </head>
 <body>
   <div id="root"></div>
@@ -1302,7 +1366,56 @@ const OpeningVideo = () => {
               >
                 ✨ 完成旅程 / Complete & Exit
               </button>
-              
+              <!-- QR Codes 区域 -->
+                
+<div style="margin-top: 50px; padding: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px;">
+  
+  <h2 style="color: white; text-align: center; font-size: 32px; margin-bottom: 35px;">
+    ✨ 加入我們的大家庭 ✨<br>
+    <span style="font-size: 24px; opacity: 0.95;">Join Our Community</span>
+  </h2>
+  
+  <div style="display: flex; justify-content: center; gap: 60px; flex-wrap: wrap;">
+    
+    <!-- Facebook QR -->
+    <div style="text-align: center; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.25);">
+      <img src="images/TCSF FB.jpeg" alt="Tzu Chi SF Facebook" 
+           style="width: 200px; height: 200px; border-radius: 10px; border: 3px solid #1877f2;">
+      <p style="margin-top: 20px; font-weight: bold; color: #1877f2; font-size: 20px;">📘 Facebook</p>
+      <p style="font-size: 15px; color: #666;">慈濟舊金山分會</p>
+    </div>
+    
+    <!-- Instagram QR -->
+    <div style="text-align: center; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.25);">
+      <img src="images/TCSF IG.jpg" alt="Tzu Chi SF Instagram" 
+           style="width: 200px; height: 200px; border-radius: 10px; border: 3px solid #E4405F;">
+      <p style="margin-top: 20px; font-weight: bold; color: #E4405F; font-size: 20px;">📸 Instagram</p>
+      <p style="font-size: 15px; color: #666;">@tzuchiusa.sf</p>
+    </div>
+    
+  </div>
+  
+  <p style="margin-top: 40px; text-align: center; font-size: 20px; color: white; line-height: 1.8;">
+    📱 掃描 QR Code 關注我們！<br>
+    <span style="font-size: 18px;">Scan to follow us and learn about volunteer opportunities!</span>
+  </p>
+</div>
+```
+
+---
+<!-- 音乐控制 -->
+<div class="music-control" id="musicBtn" onclick="toggleMusic()">
+  🎵 播放中
+</div>
+
+<script>
+// 自动播放欢迎音乐
+window.addEventListener('load', function() {
+  playMusic('welcome');
+});
+</script>
+  
+</body>
               {/* Mobile-specific help */}
               <div className="text-center text-sm text-gray-600 mt-4 md:hidden">
                 <p>手機用戶：點擊上方按鈕後可使用瀏覽器返回鍵</p>
