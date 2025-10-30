@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku - Journey of Kindness</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .game-header h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .game-header p {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .story-text {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .story-text p {
+            color: #444;
+            line-height: 1.8;
+            margin-bottom: 10px;
+        }
+
+        .sudoku-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 0;
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto 30px;
+            border: 3px solid #333;
+            background: #333;
+        }
+
+        .sudoku-cell {
+            aspect-ratio: 1;
+            border: 1px solid #999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sudoku-cell:hover:not(.fixed-cell) {
+            background: #e3f2fd;
+        }
+
+        .sudoku-cell.selected {
+            background: #bbdefb !important;
+            outline: 3px solid #2196f3;
+        }
+
+        .sudoku-cell.fixed-cell {
+            background: #f5f5f5;
+            color: #333;
+            cursor: not-allowed;
+        }
+
+        .sudoku-cell.player-cell {
+            color: #2196f3;
+        }
+
+        .sudoku-cell.error-cell {
+            background: #ffebee !important;
+            color: #c62828;
+        }
+
+        /* Thick borders for 3x3 blocks */
+        .sudoku-cell:nth-child(3n) {
+            border-right: 3px solid #333;
+        }
+
+        .sudoku-cell:nth-child(n+19):nth-child(-n+27),
+        .sudoku-cell:nth-child(n+46):nth-child(-n+54) {
+            border-bottom: 3px solid #333;
+        }
+
+        .number-pad {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            max-width: 450px;
+            margin: 0 auto 30px;
+        }
+
+        .number-btn {
+            padding: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .number-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .number-btn:active {
+            transform: translateY(0);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #64b5f6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #42a5f5;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #ef5350;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53935;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .info-panel {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .info-panel h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ai-solving {
+            text-align: center;
+            padding: 20px;
+            background: #fff3e0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .ai-solving.show {
+            display: block;
+        }
+
+        .ai-solving h3 {
+            color: #f57c00;
+            margin-bottom: 10px;
+        }
+
+        .loading-dots {
+            font-size: 30px;
+            color: #f57c00;
+        }
+
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+            }
+
+            .sudoku-cell {
+                font-size: 18px;
+            }
+
+            .number-btn {
+                padding: 10px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>🧩 數獨挑戰 Sudoku Challenge</h1>
+            <p>慈濟志工休息時光 | Tzu Chi Volunteer Break Time</p>
+        </div>
+
+        <div class="story-text">
+            <p><strong>📖 故事背景：</strong></p>
+            <p>在忙碌的志工服務後，慈濟志工們會在服務地點稍作休息。許多志工喜歡玩數獨來放鬆心情，同時訓練邏輯思維。無論在社區中心、食物發放站，或是任何服務地點，數獨都是志工們喜愛的休閒活動。</p>
+            <p><strong>Story:</strong> After busy volunteer work, Tzu Chi volunteers take breaks at their service locations. Many enjoy Sudoku puzzles to unwind while training logical thinking. Whether at community centers, food distribution sites, or any service location, Sudoku is a favorite activity.</p>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            <h2>🎉 恭喜完成！Congratulations!</h2>
+            <p>你成功解開了數獨！You solved the Sudoku!</p>
+        </div>
+
+        <div class="ai-solving" id="aiSolving">
+            <h3>🤖 AI 正在求解...</h3>
+            <p>使用回溯演算法 (Backtracking Algorithm)</p>
+            <div class="loading-dots">●●●</div>
+        </div>
+
+        <div class="info-panel">
+            <h3>📊 遊戲統計 Game Stats</h3>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-label">已填格數</div>
+                    <div class="stat-value" id="filledCount">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">剩餘空格</div>
+                    <div class="stat-value" id="remainingCount">81</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">步數</div>
+                    <div class="stat-value" id="moveCount">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sudoku-grid" id="sudokuGrid"></div>
+
+        <div class="number-pad" id="numberPad">
+            <button class="number-btn" data-number="1">1</button>
+            <button class="number-btn" data-number="2">2</button>
+            <button class="number-btn" data-number="3">3</button>
+            <button class="number-btn" data-number="4">4</button>
+            <button class="number-btn" data-number="5">5</button>
+            <button class="number-btn" data-number="6">6</button>
+            <button class="number-btn" data-number="7">7</button>
+            <button class="number-btn" data-number="8">8</button>
+            <button class="number-btn" data-number="9">9</button>
+            <button class="number-btn" data-number=" ">清除 Clear</button>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" id="checkBtn">✓ 檢查答案 Check</button>
+            <button class="btn btn-secondary" id="aiSolveBtn">🤖 AI 求解 AI Solve</button>
+            <button class="btn btn-danger" id="newGameBtn">🔄 新遊戲 New Game</button>
+        </div>
+    </div>
+
+    <script src="sudoku-solver.js"></script>
+    <script>
+        // Game state
+        let sudokuGame = new SudokuGrid();
+        let selectedCell = null;
+        let fixedCells = new Set();
+        let moveCount = 0;
+
+        // Easy Sudoku puzzle for testing
+        const easyPuzzle = [
+            ['5', '3', ' ', ' ', '7', ' ', ' ', ' ', ' '],
+            ['6', ' ', ' ', '1', '9', '5', ' ', ' ', ' '],
+            [' ', '9', '8', ' ', ' ', ' ', ' ', '6', ' '],
+            ['8', ' ', ' ', ' ', '6', ' ', ' ', ' ', '3'],
+            ['4', ' ', ' ', '8', ' ', '3', ' ', ' ', '1'],
+            ['7', ' ', ' ', ' ', '2', ' ', ' ', ' ', '6'],
+            [' ', '6', ' ', ' ', ' ', ' ', '2', '8', ' '],
+            [' ', ' ', ' ', '4', '1', '9', ' ', ' ', '5'],
+            [' ', ' ', ' ', ' ', '8', ' ', ' ', '7', '9']
+        ];
+
+        // Initialize game
+        function initGame() {
+            // Load puzzle into game
+            sudokuGame.loadGrid(easyPuzzle);
+            
+            // Track fixed cells
+            fixedCells.clear();
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (easyPuzzle[row][col] !== ' ') {
+                        fixedCells.add(`${row}-${col}`);
+                    }
+                }
+            }
+            
+            moveCount = 0;
+            selectedCell = null;
+            renderGrid();
+            updateStats();
+        }
+
+        // Render the Sudoku grid
+        function renderGrid() {
+            const gridElement = document.getElementById('sudokuGrid');
+            gridElement.innerHTML = '';
+            
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'sudoku-cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    
+                    const value = sudokuGame.getCell(row, col);
+                    cell.textContent = value === ' ' ? '' : value;
+                    
+                    // Mark fixed cells
+                    if (fixedCells.has(`${row}-${col}`)) {
+                        cell.classList.add('fixed-cell');
+                    } else if (value !== ' ') {
+                        cell.classList.add('player-cell');
+                    }
+                    
+                    // Add click handler
+                    cell.addEventListener('click', () => selectCell(row, col));
+                    
+                    gridElement.appendChild(cell);
+                }
+            }
+        }
+
+        // Select a cell
+        function selectCell(row, col) {
+            if (fixedCells.has(`${row}-${col}`)) return;
+            
+            selectedCell = {row, col};
+            
+            // Update visual selection
+            document.querySelectorAll('.sudoku-cell').forEach(cell => {
+                cell.classList.remove('selected');
+            });
+            
+            const cellElement = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            if (cellElement) {
+                cellElement.classList.add('selected');
+            }
+        }
+
+        // Place number in selected cell
+        function placeNumber(num) {
+            if (!selectedCell) {
+                alert('請先選擇一個格子！Please select a cell first!');
+                return;
+            }
+            
+            const {row, col} = selectedCell;
+            
+            try {
+                sudokuGame.setCell(row, col, num);
+                moveCount++;
+                renderGrid();
+                updateStats();
+                
+                // Check if solved
+                if (sudokuGame.isSolved()) {
+                    showSuccess();
+                }
+            } catch (error) {
+                alert('錯誤：' + error.message);
+            }
+        }
+
+        // Update statistics
+        function updateStats() {
+            const filledCount = sudokuGame.getFilledCount();
+            document.getElementById('filledCount').textContent = filledCount;
+            document.getElementById('remainingCount').textContent = 81 - filledCount;
+            document.getElementById('moveCount').textContent = moveCount;
+        }
+
+        // Check answer
+        function checkAnswer() {
+            if (sudokuGame.isSolved()) {
+                showSuccess();
+            } else {
+                alert('還沒完全正確，繼續加油！Not quite right yet, keep going!');
+            }
+        }
+
+        // Show success message
+        function showSuccess() {
+            document.getElementById('successMessage').classList.add('show');
+            setTimeout(() => {
+                alert('🎉 恭喜！你完成了數獨挑戰！\n\nCongratulations! You completed the Sudoku challenge!\n\n慈濟志工們為你的邏輯思維能力感到驕傲！');
+            }, 500);
+        }
+
+        // AI Solve
+        async function aiSolve() {
+            document.getElementById('aiSolving').classList.add('show');
+            document.getElementById('aiSolveBtn').disabled = true;
+            
+            // Simulate AI thinking time
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Solve the puzzle
+            const success = sudokuGame.solve();
+            
+            document.getElementById('aiSolving').classList.remove('show');
+            document.getElementById('aiSolveBtn').disabled = false;
+            
+            if (success) {
+                renderGrid();
+                updateStats();
+                setTimeout(() => {
+                    alert('🤖 AI 使用回溯演算法 (Backtracking) 成功求解！\n\nAI successfully solved using Backtracking algorithm!\n\n這展示了如何系統性地嘗試所有可能性，並在遇到矛盾時回溯。');
+                    showSuccess();
+                }, 500);
+            } else {
+                alert('無法求解此數獨！Puzzle cannot be solved!');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('numberPad').addEventListener('click', (e) => {
+            if (e.target.classList.contains('number-btn')) {
+                const num = e.target.dataset.number;
+                placeNumber(num);
+            }
+        });
+
+        document.getElementById('checkBtn').addEventListener('click', checkAnswer);
+        document.getElementById('aiSolveBtn').addEventListener('click', aiSolve);
+        document.getElementById('newGameBtn').addEventListener('click', initGame);
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '1' && e.key <= '9') {
+                placeNumber(e.key);
+            } else if (e.key === 'Backspace' || e.key === 'Delete') {
+                placeNumber(' ');
+            }
+        });
+
+        // Initialize on load
+        initGame();
+    </script>
+</body>
+</html>
