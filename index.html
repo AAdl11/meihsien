@@ -1403,12 +1403,18 @@ const OpeningVideo = () => {
   🎵 播放中
 </div>
 
-<script>
-// 自動播放歡迎音樂 
-window.addEventListener('load', function() {
-  playMusic('welcome');
-});
 </script>
+  
+</script>
+  // 自動播放歡迎音樂
+window.addEventListener('load', function() {
+  if (typeof playMusic === 'function') {
+    setTimeout(function() {
+      playMusic('welcome');
+    }, 500);
+  }
+});
+</script> 
   
 </body>
               {/* Mobile-specific help */}
