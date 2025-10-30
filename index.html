@@ -53,7 +53,7 @@
 </style>
 
 <script>
-// 音乐系统
+// 音樂系統
 const MUSIC_FILES = {
   welcome: 'music/welcome.mp3',
   stage1: 'music/stage1.mp3',
@@ -86,7 +86,7 @@ function toggleMusic() {
   if (isMusicPlaying) {
     currentAudio.pause();
     isMusicPlaying = false;
-    document.getElementById('musicBtn').textContent = '🔇 音乐已暂停';
+    document.getElementById('musicBtn').textContent = '🔇 音樂已暫停';
   } else {
     currentAudio.play();
     isMusicPlaying = true;
@@ -350,7 +350,7 @@ const OpeningVideo = () => {
           onClick={handleSkip}
           className="absolute top-4 right-4 bg-white/80 hover:bg-white text-black px-6 py-3 rounded-full font-bold transition-all"
         >
-          Skip / 跳过
+          Skip / 跳過 
         </button>
       </div>
     </div>
@@ -1404,7 +1404,7 @@ const OpeningVideo = () => {
 </div>
 
 <script>
-// 自动播放欢迎音乐
+{/* 自動播放歡迎音樂 */}
 window.addEventListener('load', function() {
   playMusic('welcome');
 });
