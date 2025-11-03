@@ -6,110 +6,52 @@
     <title>慈善之旅 Journey of Kindness</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-        }
-        .float-animation { animation: float 3s ease-in-out infinite; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
+        video { width: 100%; max-width: 800px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
         .fade-in { animation: fadeIn 0.5s ease-out; }
-        .emoji-character {
-            font-size: 4rem;
-            display: inline-block;
-            transition: transform 0.3s ease;
-        }
-        .emoji-character:hover {
-            transform: scale(1.2) rotate(10deg);
-        }
-        video {
-            width: 100%;
-            max-width: 800px;
-            border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-purple-100 min-h-screen">
-    <div id="app"></div>
-    <script type="module">
-        import React, { useState } from 'https://esm.sh/react@18.2.0';
-        import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
+<body class="bg-gradient-to-br from-purple-900 to-blue-900 min-h-screen flex flex-col items-center justify-center p-8">
+    <div class="text-center mb-8 fade-in">
+        <h1 class="text-6xl font-bold text-white mb-4">慈善之旅</h1>
+        <h2 class="text-4xl font-bold text-blue-200">Journey of Kindness</h2>
+    </div>
+    
+    <div class="fade-in mb-8">
+        <video id="openingVideo" controls className="mb-8">
+            <source src="images/JourneyOfKindness_GameStartScene.mp4" type="video/mp4">
+            您的瀏覽器不支援影片播放
+        </video>
+    </div>
+    
+    <div class="text-center fade-in">
+        <button onclick="document.getElementById('openingVideo').play()" 
+                class="bg-green-500 hover:bg-green-600 text-white px-12 py-4 rounded-full text-xl font-bold mb-4 mr-4">
+            ▶ 播放影片 Play Video
+        </button>
+        <button onclick="location.href='#start'" 
+                class="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white px-12 py-4 rounded-full text-xl font-bold">
+            略過 / 開始旅程 Start Journey 🚀
+        </button>
+    </div>
 
-        const TOTAL_LEVELS = 8;
-        
-        function JourneyOfKindness() {
-            const [gameStage, setGameStage] = useState('opening');
-            const [currentLevel, setCurrentLevel] = useState(null);
-            const [completedLevels, setCompletedLevels] = useState([]);
-            const [showVideo, setShowVideo] = useState(true);
+    <div id="start" class="hidden mt-12 bg-white/10 backdrop-blur-lg p-12 rounded-3xl max-w-2xl text-center">
+        <p class="text-2xl text-white mb-6 leading-relaxed">
+            25年前，一個小女孩吃生米的畫面改變了一切...<br>
+            <span class="text-blue-200">25 years ago, one moment changed everything...</span>
+        </p>
+        <p class="text-xl text-blue-200 mb-8">
+            現在，輪到你用AI的力量延續這份愛<br>
+            Now, it's your turn to continue this love with AI
+        </p>
+        <div class="text-4xl mb-6">🍚 → 🤖 → 💙</div>
+        <p class="text-white text-lg">遊戲完整版開發中...<br>Game levels coming soon!</p>
+    </div>
 
-            const OpeningVideo = () => (
-                React.createElement('div', { className: 'min-h-screen flex flex-col items-center justify-center p-8 bg-gradient-to-br from-purple-900 to-blue-900' },
-                    React.createElement('div', { className: 'text-center mb-8 fade-in' },
-                        React.createElement('h1', { className: 'text-6xl font-bold text-white mb-4' }, '慈善之旅'),
-                        React.createElement('h2', { className: 'text-4xl font-bold text-blue-200' }, 'Journey of Kindness')
-                    ),
-                    showVideo ? 
-                        React.createElement('div', { className: 'fade-in' },
-                            React.createElement('video', {
-                                autoPlay: true,
-                                onEnded: () => setShowVideo(false),
-                                className: 'mb-8'
-                            },
-                                React.createElement('source', { src: 'images/JourneyOfKindness_GameStartScene.mp4', type: 'video/mp4' }),
-                                '您的瀏覽器不支援影片播放'
-                            ),
-                            React.createElement('button', {
-                                onClick: () => setShowVideo(false),
-                                className: 'bg-white/20 hover:bg-white/40 text-white px-8 py-3 rounded-full text-lg transition-all'
-                            }, '略過 Skip →')
-                        )
-                    :
-                        React.createElement('div', { className: 'text-center fade-in' },
-                            React.createElement('div', { className: 'bg-white/10 backdrop-blur-lg p-12 rounded-3xl max-w-2xl mb-8' },
-                                React.createElement('p', { className: 'text-2xl text-white mb-6 leading-relaxed' },
-                                    '25年前，一個小女孩吃生米的畫面改變了一切...',
-                                    React.createElement('br'),
-                                    React.createElement('span', { className: 'text-blue-200' }, '25 years ago, one moment changed everything...')
-                                ),
-                                React.createElement('p', { className: 'text-xl text-blue-200 mb-8' },
-                                    '現在，輪到你用AI的力量延續這份愛',
-                                    React.createElement('br'),
-                                    'Now, it is your turn to continue this love with AI'
-                                ),
-                                React.createElement('div', { className: 'text-4xl mb-6' }, '🍚 → 🤖 → 💙')
-                            ),
-                            React.createElement('button', {
-                                onClick: () => setGameStage('playing'),
-                                className: 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white px-16 py-6 rounded-full text-2xl font-bold shadow-2xl transform hover:scale-105 transition-all'
-                            }, '開始旅程 Start Journey 🚀')
-                        )
-                )
-            );
-
-            const MainMenu = () => (
-                React.createElement('div', { className: 'min-h-screen flex items-center justify-center p-8' },
-                    React.createElement('div', { className: 'text-center' },
-                        React.createElement('h1', { className: 'text-6xl font-bold mb-8' }, '遊戲開發中...'),
-                        React.createElement('p', { className: 'text-2xl text-gray-600 mb-8' }, 'Game levels coming soon!'),
-                        React.createElement('button', {
-                            onClick: () => setGameStage('opening'),
-                            className: 'bg-blue-500 hover:bg-blue-600 text-white px-8 py-4 rounded-full text-xl'
-                        }, '← 返回開場')
-                    )
-                )
-            );
-
-            return React.createElement('div', null,
-                gameStage === 'opening' ? React.createElement(OpeningVideo) : React.createElement(MainMenu)
-            );
-        }
-
-        const root = createRoot(document.getElementById('app'));
-        root.render(React.createElement(JourneyOfKindness));
+    <script>
+        document.querySelector('button[onclick="location.href=\'#start\'"]').addEventListener('click', function() {
+            document.getElementById('start').classList.remove('hidden');
+        });
     </script>
 </body>
 </html>
