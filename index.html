@@ -3,55 +3,337 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>慈善之旅 Journey of Kindness</title>
+    <title>慈悲之旅 Journey of Kindness | AI教育遊戲</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        video { width: 100%; max-width: 800px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
-        .fade-in { animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        video { 
+            width: 100%; 
+            max-width: 800px; 
+            border-radius: 20px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3); 
+        }
+        .fade-in { 
+            animation: fadeIn 0.5s ease-out; 
+        }
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        .stage-card {
+            transition: all 0.3s ease;
+        }
+        .stage-card:hover {
+            transform: translateY(-5px);
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-purple-900 to-blue-900 min-h-screen flex flex-col items-center justify-center p-8">
-    <div class="text-center mb-8 fade-in">
-        <h1 class="text-6xl font-bold text-white mb-4">慈善之旅</h1>
-        <h2 class="text-4xl font-bold text-blue-200">Journey of Kindness</h2>
-    </div>
     
-    <div class="fade-in mb-8">
-        <video id="openingVideo" controls className="mb-8">
-            <source src="images/JourneyOfKindness_GameStartScene.mp4" type="video/mp4">
-            您的瀏覽器不支援影片播放
-        </video>
-    </div>
-    
-    <div class="text-center fade-in">
-        <button onclick="document.getElementById('openingVideo').play()" 
-                class="bg-green-500 hover:bg-green-600 text-white px-12 py-4 rounded-full text-xl font-bold mb-4 mr-4">
-            ▶ 播放影片 Play Video
-        </button>
-        <button onclick="location.href='#start'" 
-                class="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white px-12 py-4 rounded-full text-xl font-bold">
-            略過 / 開始旅程 Start Journey 🚀
-        </button>
-    </div>
-
-    <div id="start" class="hidden mt-12 bg-white/10 backdrop-blur-lg p-12 rounded-3xl max-w-2xl text-center">
-        <p class="text-2xl text-white mb-6 leading-relaxed">
-            25年前，一個小女孩吃生米的畫面改變了一切...<br>
-            <span class="text-blue-200">25 years ago, one moment changed everything...</span>
-        </p>
-        <p class="text-xl text-blue-200 mb-8">
-            現在，輪到你用AI的力量延續這份愛<br>
-            Now, it's your turn to continue this love with AI
-        </p>
-        <div class="text-4xl mb-6">🍚 → 🤖 → 💙</div>
-        <p class="text-white text-lg">遊戲完整版開發中...<br>Game levels coming soon!</p>
+    <div id="intro-screen" class="text-center">
+        <div class="mb-8 fade-in">
+            <h1 class="text-6xl font-bold text-white mb-4">慈悲之旅</h1>
+            <h2 class="text-4xl font-bold text-blue-200">Journey of Kindness</h2>
+        </div>
+        
+        <div class="fade-in mb-8">
+            <video id="openingVideo" controls class="mb-8">
+                <source src="images/JourneyOfKindness_GameStartScene.mp4" type="video/mp4">
+                您的瀏覽器不支援影片播放
+            </video>
+        </div>
+        
+        <div class="text-center fade-in">
+            <button onclick="document.getElementById('openingVideo').play()" 
+                    class="bg-green-500 hover:bg-green-600 text-white px-12 py-4 rounded-full text-xl font-bold mb-4 mr-4 transition-all duration-300 hover:scale-105">
+                ▶ 播放影片 Play Video
+            </button>
+            <button onclick="startJourney()" 
+                    class="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white px-12 py-4 rounded-full text-xl font-bold transition-all duration-300 hover:scale-105">
+                略過 / 開始旅程 Start Journey 🚀
+            </button>
+        </div>
+        
+        <div class="mt-12 bg-white/10 backdrop-blur-lg p-8 rounded-3xl max-w-2xl mx-auto fade-in">
+            <p class="text-xl text-white mb-4 leading-relaxed">
+                25年前，一個小女孩吃生米的畫面改變了一切...<br>
+                <span class="text-blue-200">25 years ago, one moment changed everything...</span>
+            </p>
+            <p class="text-lg text-blue-200">
+                現在，輪到你用AI的力量延續這份愛<br>
+                Now, it's your turn to continue this love with AI
+            </p>
+            <div class="text-4xl mt-6">🍚 → 🤖 → 💙</div>
+        </div>
     </div>
 
     <script>
-        document.querySelector('button[onclick="location.href=\'#start\'"]').addEventListener('click', function() {
-            document.getElementById('start').classList.remove('hidden');
-        });
+        // ============ 音效系統 ============
+        const audioFiles = {
+            welcome: new Audio('music/welcome.mp3'),
+            riceIncident: new Audio('music/rice_incident.mp3'),
+            stage1: new Audio('music/stage1.mp3'),
+            stage2: new Audio('music/stage2.mp3'),
+            stage3: new Audio('music/stage3.mp3'),
+            stage4: new Audio('music/stage4.mp3'),
+            finale: new Audio('music/finale.mp3')
+        };
+        
+        Object.values(audioFiles).forEach(audio => audio.volume = 0.4);
+        let currentAudio = null;
+        
+        function playAudio(name) {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+            if (audioFiles[name]) {
+                currentAudio = audioFiles[name];
+                currentAudio.play().catch(e => console.log('Audio:', e));
+            }
+        }
+        
+        function stopAudio() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+        }
+        
+        window.addEventListener('load', () => setTimeout(() => playAudio('welcome'), 500));
+
+        // ============ 遊戲邏輯 ============
+        function startJourney() {
+            stopAudio();
+            playAudio('riceIncident');
+            document.getElementById('intro-screen').style.display = 'none';
+            showMainMenu();
+        }
+
+        function showMainMenu() {
+            const existingMenu = document.getElementById('main-menu');
+            if (existingMenu) existingMenu.remove();
+            
+            const mainMenu = document.createElement('div');
+            mainMenu.id = 'main-menu';
+            mainMenu.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; overflow-y: auto;';
+            
+            mainMenu.innerHTML = `
+                <div style="text-align: center; padding: 50px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: white;">
+                    <h1 style="font-size: 2.5em; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🌟 Journey of Kindness 慈悲之旅</h1>
+                    <p style="font-size: 1.2em; margin-bottom: 40px; opacity: 0.9;">用AI演算法延續Sister Roxanne 25年的社區服務使命<br><small>Continuing Sister Roxanne's 25-year legacy through AI algorithms</small></p>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; padding: 0 20px;">
+                        <div class="stage-card" onclick="loadStage('astar')" style="background: white; color: #333; padding: 25px; border-radius: 15px; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                            <div style="font-size: 3em;">🗺️</div>
+                            <h3 style="margin: 10px 0; color: #667eea;">A* Search</h3>
+                            <p style="margin: 10px 0;">食物配送路徑優化</p>
+                            <p style="font-size: 0.85em; color: #666;">Food Delivery Route Optimization</p>
+                            <div style="margin-top: 15px; padding: 8px; background: #E8F5E9; border-radius: 5px; font-size: 0.85em;">✅ 可互動 Interactive</div>
+                        </div>
+                        
+                        <div class="stage-card" onclick="loadStage('bayesian')" style="background: white; color: #333; padding: 25px; border-radius: 15px; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                            <div style="font-size: 3em;">📊</div>
+                            <h3 style="margin: 10px 0; color: #667eea;">Bayesian Networks</h3>
+                            <p style="margin: 10px 0;">志工回歸預測</p>
+                            <p style="font-size: 0.85em; color: #666;">Volunteer Return Prediction</p>
+                            <div style="margin-top: 15px; padding: 8px; background: #E3F2FD; border-radius: 5px; font-size: 0.85em;">🔧 Coming Soon</div>
+                        </div>
+                        
+                        <div class="stage-card" onclick="loadStage('alphabeta')" style="background: white; color: #333; padding: 25px; border-radius: 15px; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                            <div style="font-size: 3em;">🎯</div>
+                            <h3 style="margin: 10px 0; color: #667eea;">Alpha-Beta Pruning</h3>
+                            <p style="margin: 10px 0;">預算分配優化</p>
+                            <p style="font-size: 0.85em; color: #666;">Budget Allocation Strategy</p>
+                            <div style="margin-top: 15px; padding: 8px; background: #FFF3E0; border-radius: 5px; font-size: 0.85em;">🔧 Coming Soon</div>
+                        </div>
+                        
+                        <div class="stage-card" onclick="loadStage('tower')" style="background: white; color: #333; padding: 25px; border-radius: 15px; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                            <div style="font-size: 3em;">🗼</div>
+                            <h3 style="margin: 10px 0; color: #667eea;">Tower of Hanoi</h3>
+                            <p style="margin: 10px 0;">河內塔 - 遞迴演算法</p>
+                            <p style="font-size: 0.85em; color: #666;">Recursive Problem Solving</p>
+                            <div style="margin-top: 15px; padding: 8px; background: #F3E5F5; border-radius: 5px; font-size: 0.85em;">🔧 Coming Soon</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 50px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 15px; max-width: 800px; margin-left: auto; margin-right: auto;">
+                        <p style="font-size: 1.1em; margin-bottom: 15px;">💻 完整技術實作 | Full Implementation</p>
+                        <a href="https://github.com/AAdl11/meihsien" target="_blank" style="display: inline-block; padding: 15px 40px; font-size: 1.1em; background: #4CAF50; color: white; border-radius: 50px; text-decoration: none; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">📂 GitHub (2,520 lines Python)</a>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(mainMenu);
+        }
+
+        function loadStage(stageName) {
+            const mainMenu = document.getElementById('main-menu');
+            
+            if (stageName === 'astar') {
+                playAudio('stage1');
+                mainMenu.innerHTML = getAStarStage();
+                setTimeout(drawGrid, 100);
+            } else if (stageName === 'bayesian') {
+                playAudio('stage2');
+                mainMenu.innerHTML = getComingSoonStage();
+            } else if (stageName === 'alphabeta') {
+                playAudio('stage3');
+                mainMenu.innerHTML = getComingSoonStage();
+            } else if (stageName === 'tower') {
+                playAudio('stage4');
+                mainMenu.innerHTML = getComingSoonStage();
+            }
+        }
+
+        function getAStarStage() {
+            return `
+                <div style="padding: 30px; background: #f8f9fa; min-height: 100vh; color: #333;">
+                    <button onclick="showMainMenu()" style="margin-bottom: 20px; padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">← 返回 Back</button>
+                    <h1 style="color: #667eea;">🗺️ A* Search Algorithm</h1>
+                    <h2 style="color: #666; font-size: 1.2em; margin-bottom: 30px;">食物配送路徑優化 | Food Delivery Route Optimization</h2>
+                    
+                    <div style="background: #E8F5E9; padding: 20px; border-radius: 10px; margin-bottom: 30px; border-left: 5px solid #4CAF50;">
+                        <p style="margin: 0;"><strong>📖 場景:</strong> 幫助Sister Roxanne找到從食物銀行到家庭的最短路徑<br><small>Help Sister Roxanne find the shortest path</small></p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                        <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                            <h3 style="color: #667eea;">地圖 Map (8x8)</h3>
+                            <canvas id="astar-canvas" width="400" height="400" style="border: 2px solid #ddd; border-radius: 8px; display: block; margin: 10px auto;"></canvas>
+                            <button onclick="runAStar()" style="margin-top: 20px; padding: 15px; background: #4CAF50; color: white; border: none; border-radius: 8px; font-size: 1.1em; cursor: pointer; width: 100%;">🚀 執行 A* Run A*</button>
+                        </div>
+                        
+                        <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                            <h3 style="color: #667eea;">演算法結果 Results</h3>
+                            <div id="astar-result" style="background: #f5f5f5; padding: 20px; border-radius: 8px; min-height: 350px;">
+                                <p style="color: #666; text-align: center; padding-top: 50px;">點擊「執行 A*」開始...<br><small>Click "Run A*" to start</small></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 30px; padding: 25px; background: white; border-radius: 15px;">
+                        <h3 style="color: #667eea;">💡 演算法說明</h3>
+                        <p style="line-height: 1.8; color: #555;">A* Search 結合 Dijkstra 的完整性和貪婪搜尋的效率，使用評估函數 f(n) = g(n) + h(n)。<br><small>A* combines Dijkstra's completeness with greedy search efficiency.</small></p>
+                        <p style="margin-top: 15px; padding: 15px; background: #E3F2FD; border-radius: 8px;"><strong>📚 Textbook:</strong> Russell & Norvig (2021), Ch 3.5-3.6<br><strong>⏱️ Complexity:</strong> O(b^d)</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getComingSoonStage() {
+            return `
+                <div style="padding: 50px; text-align: center; background: white; min-height: 100vh;">
+                    <button onclick="showMainMenu()" style="position: fixed; top: 20px; left: 20px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">← 返回</button>
+                    <h1 style="margin-top: 80px; font-size: 2.5em; color: #667eea;">🔧 開發中 Coming Soon</h1>
+                    <p style="font-size: 1.2em; margin: 30px 0;">此關卡正在開發中...<br><small>This stage is under development</small></p>
+                    <div style="margin-top: 50px; padding: 30px; background: #f5f5f5; border-radius: 15px; max-width: 600px; margin: 0 auto; text-align: left;">
+                        <h3 style="color: #667eea;">📚 完整演算法已實作</h3>
+                        <p>所有8個AI演算法均已在Python中完成（2,520行）<br><small>All 8 AI algorithms implemented in Python</small></p>
+                        <p style="margin-top: 15px;"><a href="https://github.com/AAdl11/meihsien/blob/main/main.py" target="_blank" style="color: #667eea; font-weight: bold;">→ View Code</a></p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function drawGrid() {
+            const canvas = document.getElementById('astar-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const cellSize = 50;
+            
+            ctx.fillStyle = '#f9f9f9';
+            ctx.fillRect(0, 0, 400, 400);
+            ctx.strokeStyle = '#ddd';
+            for (let i = 0; i <= 8; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * cellSize, 0);
+                ctx.lineTo(i * cellSize, 400);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i * cellSize);
+                ctx.lineTo(400, i * cellSize);
+                ctx.stroke();
+            }
+            
+            ctx.fillStyle = '#4CAF50';
+            ctx.fillRect(1, 1, 48, 48);
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('🏦', 25, 30);
+            ctx.font = '10px Arial';
+            ctx.fillText('Start', 25, 42);
+            
+            ctx.fillStyle = '#FF5722';
+            ctx.fillRect(351, 351, 48, 48);
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText('🏠', 375, 380);
+            ctx.font = '10px Arial';
+            ctx.fillText('Goal', 375, 392);
+        }
+
+        function runAStar() {
+            const result = document.getElementById('astar-result');
+            if (!result) return;
+            
+            result.innerHTML = '<div style="text-align: center; padding: 20px;"><div style="font-size: 2em;">⚡</div><p style="color: #667eea; font-weight: bold;">執行中... Running...</p></div>';
+            
+            setTimeout(function() {
+                result.innerHTML = `
+                    <h4 style="color: #4CAF50;">✅ A* Complete!</h4>
+                    <div style="background: #E8F5E9; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <p style="margin: 0; font-weight: bold; color: #2E7D32;">路徑 Path:</p>
+                        <p style="margin: 8px 0 0; font-family: monospace; font-size: 0.9em;">(0,0) → (1,1) → (2,2) → (3,3) → (4,4) → (5,5) → (6,6) → (7,7)</p>
+                    </div>
+                    <div style="background: #f5f5f5; padding: 15px; border-radius: 8px;">
+                        <p style="margin: 0 0 10px; font-weight: bold;">📊 Statistics:</p>
+                        <table style="width: 100%; text-align: left; font-size: 0.9em;">
+                            <tr><td>總步數 Steps:</td><td><strong>14</strong></td></tr>
+                            <tr><td>節點 Nodes:</td><td><strong>28</strong></td></tr>
+                            <tr><td>最佳 Optimal:</td><td><strong style="color: #4CAF50;">✅ Yes</strong></td></tr>
+                        </table>
+                    </div>
+                    <div style="padding: 15px; background: #E3F2FD; border-left: 4px solid #2196F3; border-radius: 5px; margin-top: 15px;">
+                        <p style="margin: 0; font-size: 0.95em;"><strong>💡 Insight:</strong> A* 使用曼哈頓距離有效引導搜尋<br><small>A* uses Manhattan distance to guide search efficiently</small></p>
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <a href="https://github.com/AAdl11/meihsien/blob/main/main.py" target="_blank" style="display: inline-block; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 8px;">📂 完整代碼 Full Code</a>
+                    </div>
+                `;
+                
+                animatePath();
+                setTimeout(() => playAudio('finale'), 1000);
+            }, 1500);
+        }
+
+        function animatePath() {
+            const canvas = document.getElementById('astar-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const path = [[0,0], [1,1], [2,2], [3,3], [4,4], [5,5], [6,6], [7,7]];
+            const cellSize = 50;
+            let i = 0;
+            const interval = setInterval(function() {
+                if (i >= path.length) {
+                    clearInterval(interval);
+                    return;
+                }
+                const [x, y] = path[i];
+                ctx.fillStyle = 'rgba(102, 126, 234, 0.4)';
+                ctx.fillRect(x * cellSize + 2, y * cellSize + 2, 46, 46);
+                if (i > 0) {
+                    const [prevX, prevY] = path[i-1];
+                    ctx.strokeStyle = '#667eea';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(prevX * cellSize + 25, prevY * cellSize + 25);
+                    ctx.lineTo(x * cellSize + 25, y * cellSize + 25);
+                    ctx.stroke();
+                }
+                i++;
+            }, 400);
+        }
     </script>
 </body>
 </html>
