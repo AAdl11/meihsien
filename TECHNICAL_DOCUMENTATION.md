@@ -23,7 +23,6 @@
 ---
 
 ## 🎯 1. Project Overview | 專案概述
-
 ### Purpose | 目的
 Journey of Kindness applies CS4 concepts from Russell & Norvig's *Artificial Intelligence: A Modern Approach* (2021) to create an educational game that teaches 8 core algorithms while recruiting volunteers for Tzu Chi Foundation.
 
@@ -1249,6 +1248,56 @@ class Analytics {
 | Hill Climbing | O(n) | O(1) | No (local optima) | Optimization |
 | First-Order Logic | O(2^n) | O(n) | Yes | Logical inference |
 | Blocks World | O(n!) | O(n²) | Yes (with STRIPS) | Planning |
+
+---
+
+## Lab 8: Logical Agents
+
+This project implements three fundamental logical reasoning algorithms from CS4 Lab 8 (Professor An Lam), applied to Tzu Chi volunteer recruitment system.
+
+### Algorithm Implementation
+
+**1. Modus Ponens (Mission 1: Basic Recruitment)**
+
+Rule: IF (empathy AND time) THEN suitable_volunteer
+
+Applied in volunteer qualification screening. Players evaluate candidates by confirming antecedent conditions to derive conclusions about suitability.
+
+**2. Modus Tollens (Mission 2: Commitment Assessment)**
+
+Rule: IF suitable_long_term THEN can_commit  
+Contrapositive: IF NOT can_commit THEN NOT suitable_long_term
+
+Applied in reverse reasoning to eliminate unsuitable candidates for long-term programs, identifying better matches for short-term roles.
+
+**3. Forward Chaining (Mission 3: Leader Development)**
+
+Rule chain: empathy → volunteer → specialist → leader → DxD_candidate
+
+Applied in multi-step reasoning to build inference chains, systematically identifying candidates for Stanford DxD Pathways program.
+
+### Knowledge Base Architecture
+```javascript
+class KnowledgeBase {
+  tell(fact, value)
+  ask(query)
+}
+
+class InferenceEngine {
+  modusPonens(antecedent, consequent)
+  modusTollens(antecedent, consequent)
+  forwardChain(rules)
+}
+```
+
+### Integration with Course Material
+
+Russell & Norvig (2021), Chapter 7: Logical Agents
+- Section 7.1: Knowledge Base operations
+- Section 7.5: Inference rules
+- Section 7.5.3: Forward Chaining algorithm
+
+Implementation extends textbook concepts to real-world volunteer management domain with visual reasoning transparency and explainable AI decision-making.
 
 ---
 
