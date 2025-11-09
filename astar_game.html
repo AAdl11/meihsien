@@ -1,498 +1,784 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A* Search - Journey of Kindness</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
-    <style>
-        .grid-cell {
-            width: 60px;
-            height: 60px;
-            border: 1px solid #ccc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 14px;
-            font-weight: bold;
-            background-size: cover;
-            background-position: center;
-        }
-        .grid-cell:hover:not(.cell-start):not(.cell-goal) {
-            background: #e0f2fe;
-            transform: scale(1.05);
-        }
-        .cell-start {
-            background: #22c55e !important;
-            background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Tzu_Chi_Foundation_office.jpg/300px-Tzu_Chi_Foundation_office.jpg');
-            color: white;
-            font-weight: bold;
-            border: 3px solid #16a34a;
-        }
-        .cell-goal {
-            background: #ef4444 !important;
-            background-image: url('https://images.unsplash.com/photo-1593113646773-028c64a8f1b8?w=300');
-            color: white;
-            font-weight: bold;
-            border: 3px solid #dc2626;
-        }
-        .cell-human-path {
-            background: #fbbf24 !important;
-            color: #000;
-        }
-        .cell-ai-path {
-            background: #3b82f6 !important;
-            color: white;
-        }
-        .cell-both-path {
-            background: linear-gradient(135deg, #fbbf24 50%, #3b82f6 50%) !important;
-            color: white;
-        }
-        @keyframes celebrate {
-            0%, 100% { transform: scale(1) rotate(0deg); }
-            25% { transform: scale(1.2) rotate(-10deg); }
-            75% { transform: scale(1.2) rotate(10deg); }
-        }
-        .celebrating {
-            animation: celebrate 0.6s ease-in-out 3;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        .ai-demo-cell {
-            animation: pulse 0.8s ease-in-out;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A* 尋路遊戲 | Journey of Kindness</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    #app {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .demo-button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      border-radius: 30px;
+      font-size: 1.1em;
+      cursor: pointer;
+      margin: 20px auto;
+      display: block;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+
+    .demo-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+
+    .game-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+
+    .panel h2 {
+      color: #667eea;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .instructions {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    .instructions ol {
+      margin-left: 20px;
+      line-height: 1.8;
+    }
+
+    .instructions li {
+      margin-bottom: 8px;
+    }
+
+    .highlight {
+      color: #e74c3c;
+      font-weight: bold;
+    }
+
+    .grid-container {
+      display: inline-block;
+      border: 3px solid #667eea;
+      border-radius: 10px;
+      overflow: hidden;
+      background: white;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .grid-row {
+      display: flex;
+    }
+
+    .grid-cell {
+      width: 60px;
+      height: 60px;
+      border: 1px solid #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .grid-cell:hover {
+      transform: scale(1.05);
+      z-index: 10;
+    }
+
+    .grid-cell.obstacle {
+      background-color: #34495e;
+      cursor: not-allowed;
+    }
+
+    .grid-cell.start {
+      background-color: #2ecc71;
+      color: white;
+      font-weight: bold;
+    }
+
+    .grid-cell.goal {
+      background-color: #e74c3c;
+      color: white;
+      font-weight: bold;
+    }
+
+    .grid-cell.user-path {
+      background-color: #f39c12;
+    }
+
+    .grid-cell.ai-path {
+      background-color: #3498db;
+    }
+
+    .step-number {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #000;
+      font-weight: bold;
+      font-size: 24px;
+      text-shadow: 0 0 3px white, 0 0 5px white;
+      z-index: 10;
+      pointer-events: none;
+    }
+    
+    .cell-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 32px;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .button {
+      padding: 15px 30px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .button-reset {
+      background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%);
+      color: white;
+    }
+
+    .button-compare {
+      background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+      color: white;
+    }
+
+    .button-compare:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+    }
+
+    .button-next {
+      background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+      color: white;
+    }
+
+    .stats {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
+    .stats h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .stat-item:last-child {
+      border-bottom: none;
+    }
+
+    .stat-value {
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    .results {
+      margin-top: 20px;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .result-header h3 {
+      color: #667eea;
+      font-size: 1.5em;
+    }
+
+    .checkmark {
+      color: #2ecc71;
+      font-size: 1.5em;
+    }
+
+    .comparison {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .efficiency {
+      font-size: 3em;
+      font-weight: bold;
+      margin: 20px 0;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .trophy {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    .path-log {
+      background: #2c3e50;
+      color: #2ecc71;
+      padding: 15px;
+      border-radius: 10px;
+      font-family: 'Courier New', monospace;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 15px;
+    }
+
+    .path-log p {
+      margin: 5px 0;
+    }
+
+    .back-button {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #e91e63 0%, #f06292 100%);
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      border-radius: 30px;
+      font-size: 1.1em;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      transition: all 0.3s;
+      z-index: 1000;
+    }
+
+    .back-button:hover {
+      transform: translateX(-50%) translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+
+    .celebration {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .celebration-content {
+      background: white;
+      padding: 50px;
+      border-radius: 20px;
+      text-align: center;
+      animation: bounceIn 0.5s;
+    }
+
+    @keyframes bounceIn {
+      0% { transform: scale(0.3); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .celebration-content h2 {
+      color: #2ecc71;
+      font-size: 3em;
+      margin-bottom: 20px;
+    }
+
+    .celebration-emoji {
+      font-size: 5em;
+      margin-bottom: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 1200px) {
+      .game-container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-purple-900 to-blue-900 min-h-screen text-white">
-    
-    <!-- Audio -->
-    <audio id="clickSound" preload="auto">
-        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGGS57OahUhELTKXh8bllHgU2jdXuy3UpBSh+zPDajzsKFV+16+qnVRQLRp/g8r5sIQU=" type="audio/wav">
-    </audio>
-    <audio id="successSound" preload="auto">
-        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGGS57OahUhELTKXh8bllHgU2jdXuy3UpBSh+zPDajzsKFV+16+qnVRQLRp/g8r5sIQU=" type="audio/wav">
-    </audio>
-    
-    <div class="container mx-auto px-4 py-8">
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold mb-2">🗺️ A* Search Algorithm</h1>
-            <p class="text-xl">食物配送路徑優化 | Food Delivery Route Optimization</p>
-            <p class="text-lg mt-2">
-                幫助Sister Roxanne找到從<strong class="text-green-300">慈濟會所</strong>到<strong class="text-red-300">Hunters Point食物發放中心</strong>的最短路徑
-            </p>
-        </div>
-
-        <div class="text-center mb-6">
-            <button id="ai-demo-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full transition text-lg shadow-lg">
-                🤖 先看AI演示 Watch AI Demo First
-            </button>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="bg-white/10 p-6 rounded-lg backdrop-blur">
-                <h2 class="text-2xl font-bold mb-4">🎮 你的路徑 Your Path</h2>
-                
-                <div id="instructions" class="mb-4 p-4 bg-blue-500/20 rounded">
-                    <p class="font-bold">遊戲說明:</p>
-                    <ol class="list-decimal list-inside text-sm space-y-1">
-                        <li>點🤖先看AI演示 | Watch AI demo first</li>
-                        <li>從<span class="text-green-300">綠色慈濟會所</span>到<span class="text-red-300">紅色食物中心</span></li>
-                        <li><span class="font-bold text-yellow-300">只能上下左右!</span></li>
-                    </ol>
-                </div>
-
-                <div id="game-board" class="inline-block bg-white/20 p-4 rounded-lg mb-4"></div>
-                
-                <div class="space-y-2">
-                    <button id="reset-btn" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg">
-                        🔄 重新開始 Reset
-                    </button>
-                    <button id="submit-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg">
-                        ✅ 提交 & 比較AI
-                    </button>
-                    <button id="undo-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg">
-                        ↩️ 撤銷
-                    </button>
-                </div>
-
-                <div id="human-stats" class="mt-4 p-4 bg-yellow-500/20 rounded-lg">
-                    <p class="font-bold">你的統計:</p>
-                    <p>路徑長度: <span id="human-length" class="text-2xl font-bold">1</span> 步</p>
-                    <p>當前: <span id="human-current" class="font-mono">(0, 0)</span></p>
-                </div>
-            </div>
-
-            <div class="bg-white/10 p-6 rounded-lg backdrop-blur">
-                <h2 class="text-2xl font-bold mb-4">🤖 AI 最優解</h2>
-                
-                <div id="waiting-message" class="mb-4 p-4 bg-purple-500/20 rounded-lg">
-                    <p class="text-center text-lg">
-                        👆 先看AI演示<br>Watch AI demo first
-                    </p>
-                </div>
-
-                <div id="ai-results" class="mb-4 p-4 bg-blue-500/20 rounded-lg hidden">
-                    <p class="font-bold text-green-400 text-xl">✅ A* Complete!</p>
-                    <div class="mt-2 space-y-1">
-                        <p>路徑: <span id="ai-length" class="text-2xl font-bold">-</span> 步</p>
-                        <p>探索: <span id="ai-nodes" class="text-xl font-bold">-</span> 節點</p>
-                    </div>
-                </div>
-
-                <div id="comparison" class="mb-4 p-4 bg-purple-500/20 rounded-lg hidden">
-                    <p class="font-bold text-2xl mb-3">📊 Human vs AI</p>
-                    <div class="text-center">
-                        <p class="text-sm">效率:</p>
-                        <p id="efficiency" class="text-5xl font-bold text-yellow-300">-</p>
-                        <p id="efficiency-message" class="text-xl font-bold mt-2"></p>
-                    </div>
-                </div>
-
-                <div id="console-output" class="mt-4 p-4 bg-black/50 rounded-lg font-mono text-xs overflow-auto max-h-64">
-                    <p class="text-green-400 font-bold">Console:</p>
-                    <div id="console-log"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="text-center mt-8">
-            <a href="index.html" class="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-bold py-3 px-8 rounded-full transition inline-block">
-                ← 返回主選單
-            </a>
-        </div>
+<body>
+  <div id="app">
+    <div class="header">
+      <h1>🗺️ 慈悲之旅 Journey of Kindness</h1>
+      <button class="demo-button" onclick="game.showAIDemo()">
+        🤖 先看AI演示 Watch AI Demo First
+      </button>
     </div>
 
-    <script>
-        // STOP ALL AUDIO FROM INDEX.HTML
-        window.addEventListener('load', () => {
-            // Stop any audio from previous page
-            document.querySelectorAll('audio').forEach(a => {
-                a.pause();
-                a.currentTime = 0;
+    <div class="game-container">
+      <!-- Left Panel: Your Path -->
+      <div class="panel">
+        <h2>✨ 你的路徑 Your Path</h2>
+        
+        <div class="instructions">
+          <strong>遊戲說明:</strong>
+          <ol>
+            <li>點 🤖 <strong>先看AI演示</strong> | Watch AI demo first</li>
+            <li>從<span class="highlight">綠色慈濟會所</span>到<span class="highlight">紅色食物中心</span></li>
+            <li><span class="highlight">只能上下左右!</span></li>
+          </ol>
+        </div>
+
+        <div class="grid-container" id="userGrid"></div>
+
+        <div class="controls">
+          <button class="button button-reset" onclick="game.resetGame()">
+            🔄 重新開始 Reset
+          </button>
+          <button class="button button-compare" id="compareBtn" onclick="game.compareWithAI()" disabled>
+            ✅ 提交 & 比較AI Submit & Compare AI
+          </button>
+          <button class="button button-next" onclick="game.goToNext()">
+            ➡️ 繼續
+          </button>
+        </div>
+
+        <div class="stats hidden" id="userStats">
+          <h3>你的統計:</h3>
+          <div class="stat-item">
+            <span>路徑長度:</span>
+            <span class="stat-value" id="userPathLength">0 步</span>
+          </div>
+          <div class="stat-item">
+            <span>當前:</span>
+            <span class="stat-value" id="currentPos">(0, 0)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: AI Solution -->
+      <div class="panel">
+        <h2>🤖 AI 最優解</h2>
+        
+        <div class="results hidden" id="aiResults">
+          <div class="result-header">
+            <span class="checkmark">✅</span>
+            <h3>A* Complete!</h3>
+          </div>
+          <div class="stat-item">
+            <span>路徑:</span>
+            <span class="stat-value" id="aiPathLength">0 步</span>
+          </div>
+          <div class="stat-item">
+            <span>探索:</span>
+            <span class="stat-value" id="aiExploredNodes">0 節點</span>
+          </div>
+        </div>
+
+        <div class="comparison hidden" id="comparisonPanel">
+          <h3>📊 Human vs AI</h3>
+          <div class="efficiency" id="efficiencyScore">0%</div>
+          <div class="trophy hidden" id="perfectTrophy">🏆 PERFECT!</div>
+          <div class="path-log" id="pathLog"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="back-button" onclick="game.goBack()">
+      ← 返回主選單
+    </button>
+
+    <!-- Celebration Modal -->
+    <div class="celebration hidden" id="celebration" onclick="game.hideCelebration()">
+      <div class="celebration-content">
+        <div class="celebration-emoji">🎉🎊🎉</div>
+        <h2>YOU REACHED GOAL!</h2>
+        <p style="font-size: 1.5em; color: #667eea;">太棒了！點擊比較AI!</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Pure JavaScript implementation - No Vue needed!
+    const game = {
+      gridSize: 8,
+      start: { row: 0, col: 0 },
+      goal: { row: 7, col: 7 },
+      obstacles: [
+        { row: 1, col: 1 }, { row: 2, col: 1 }, { row: 3, col: 1 },
+        { row: 4, col: 1 }, { row: 5, col: 1 }, { row: 6, col: 1 }
+      ],
+      userPath: [],
+      currentPos: { row: 0, col: 0 },
+      aiPath: [],
+      aiExploredNodes: 0,
+      userReachedGoal: false,
+
+      init() {
+        this.userPath = [{ ...this.start }];
+        this.renderGrid();
+        this.stopBackgroundMusic();
+      },
+
+      stopBackgroundMusic() {
+        if (window.opener && window.opener.stopBackgroundMusic) {
+          window.opener.stopBackgroundMusic();
+        }
+        try {
+          if (window.opener) {
+            const parentAudios = window.opener.document.querySelectorAll('audio');
+            parentAudios.forEach(audio => {
+              audio.pause();
+              audio.currentTime = 0;
             });
-        });
+          }
+        } catch (e) {
+          console.log('Could not access parent window audio');
+        }
+      },
 
-        const clickAudio = document.getElementById('clickSound');
-        const successAudio = document.getElementById('successSound');
-        let bgMusic = null;
-        let audioInit = false;
+      renderGrid() {
+        const gridContainer = document.getElementById('userGrid');
+        gridContainer.innerHTML = '';
+
+        for (let row = 0; row < this.gridSize; row++) {
+          const rowDiv = document.createElement('div');
+          rowDiv.className = 'grid-row';
+
+          for (let col = 0; col < this.gridSize; col++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.onclick = () => this.handleCellClick(row, col);
+
+            // Add cell classes
+            const cellClass = this.getCellClass(row, col);
+            if (cellClass) cell.classList.add(cellClass);
+
+            // Add icons
+            if (this.isStart(row, col)) {
+              const icon = document.createElement('span');
+              icon.className = 'cell-icon';
+              icon.textContent = '🚚💙';
+              cell.appendChild(icon);
+            }
+
+            if (this.isGoal(row, col)) {
+              const icon = document.createElement('span');
+              icon.className = 'cell-icon';
+              icon.textContent = '🏪🍎';
+              cell.appendChild(icon);
+            }
+
+            // Add step numbers
+            const stepNum = this.getStepNumber(row, col);
+            if (stepNum) {
+              const numSpan = document.createElement('span');
+              numSpan.className = 'step-number';
+              numSpan.textContent = stepNum;
+              cell.appendChild(numSpan);
+            }
+
+            rowDiv.appendChild(cell);
+          }
+
+          gridContainer.appendChild(rowDiv);
+        }
+      },
+
+      isObstacle(row, col) {
+        return this.obstacles.some(obs => obs.row === row && obs.col === col);
+      },
+
+      isStart(row, col) {
+        return row === this.start.row && col === this.start.col;
+      },
+
+      isGoal(row, col) {
+        return row === this.goal.row && col === this.goal.col;
+      },
+
+      isInUserPath(row, col) {
+        return this.userPath.some(pos => pos.row === row && pos.col === col);
+      },
+
+      isInAIPath(row, col) {
+        return this.aiPath.some(pos => pos.row === row && pos.col === col);
+      },
+
+      getCellClass(row, col) {
+        if (this.isObstacle(row, col)) return 'obstacle';
+        if (this.isStart(row, col)) return 'start';
+        if (this.isGoal(row, col)) return 'goal';
+        if (this.isInUserPath(row, col)) return 'user-path';
+        if (this.isInAIPath(row, col)) return 'ai-path';
+        return '';
+      },
+
+      getStepNumber(row, col) {
+        const userIndex = this.userPath.findIndex(pos => pos.row === row && pos.col === col);
+        if (userIndex !== -1) return userIndex + 1;
         
-        function initAudio() {
-            if (audioInit) return;
-            audioInit = true;
-            bgMusic = new Audio('music/stage1.mp3');
-            bgMusic.loop = true;
-            bgMusic.volume = 0.2;
-            bgMusic.play().catch(e => console.log('Music blocked'));
-            logConsole('🎵 Music started!');
+        const aiIndex = this.aiPath.findIndex(pos => pos.row === row && pos.col === col);
+        if (aiIndex !== -1) return aiIndex + 1;
+        
+        return null;
+      },
+
+      handleCellClick(row, col) {
+        if (this.userReachedGoal) return;
+        
+        if (this.isObstacle(row, col)) {
+          alert('不能走到障礙物！Cannot walk through obstacles!');
+          return;
+        }
+
+        const rowDiff = Math.abs(row - this.currentPos.row);
+        const colDiff = Math.abs(col - this.currentPos.col);
+        
+        if ((rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1)) {
+          this.userPath.push({ row, col });
+          this.currentPos = { row, col };
+          this.renderGrid();
+          this.updateStats();
+          
+          if (this.isGoal(row, col)) {
+            this.userReachedGoal = true;
+            document.getElementById('compareBtn').disabled = false;
+            document.getElementById('celebration').classList.remove('hidden');
+          }
+        } else {
+          alert('只能上下左右移動一格！Only move up/down/left/right one cell!');
+        }
+      },
+
+      updateStats() {
+        document.getElementById('userStats').classList.remove('hidden');
+        document.getElementById('userPathLength').textContent = `${this.userPath.length} 步`;
+        document.getElementById('currentPos').textContent = `(${this.currentPos.row}, ${this.currentPos.col})`;
+      },
+
+      showAIDemo() {
+        this.runAStar();
+        document.getElementById('aiResults').classList.remove('hidden');
+        document.getElementById('aiPathLength').textContent = `${this.aiPath.length} 步`;
+        document.getElementById('aiExploredNodes').textContent = `${this.aiExploredNodes} 節點`;
+        this.renderGrid();
+      },
+
+      runAStar() {
+        const openSet = [{ ...this.start, g: 0, h: this.heuristic(this.start), f: this.heuristic(this.start), parent: null }];
+        const closedSet = [];
+        let exploredCount = 0;
+
+        while (openSet.length > 0) {
+          openSet.sort((a, b) => a.f - b.f);
+          const current = openSet.shift();
+          exploredCount++;
+
+          if (current.row === this.goal.row && current.col === this.goal.col) {
+            this.aiPath = this.reconstructPath(current);
+            this.aiExploredNodes = exploredCount;
+            return;
+          }
+
+          closedSet.push(current);
+          const neighbors = this.getNeighbors(current);
+
+          for (const neighbor of neighbors) {
+            if (closedSet.some(node => node.row === neighbor.row && node.col === neighbor.col)) continue;
+            
+            const tentativeG = current.g + 1;
+            const existingNode = openSet.find(node => node.row === neighbor.row && node.col === neighbor.col);
+
+            if (!existingNode || tentativeG < existingNode.g) {
+              const newNode = {
+                ...neighbor,
+                g: tentativeG,
+                h: this.heuristic(neighbor),
+                f: tentativeG + this.heuristic(neighbor),
+                parent: current
+              };
+
+              if (existingNode) {
+                Object.assign(existingNode, newNode);
+              } else {
+                openSet.push(newNode);
+              }
+            }
+          }
+        }
+      },
+
+      heuristic(pos) {
+        return Math.abs(pos.row - this.goal.row) + Math.abs(pos.col - this.goal.col);
+      },
+
+      getNeighbors(pos) {
+        const neighbors = [];
+        const directions = [
+          { row: -1, col: 0 }, { row: 1, col: 0 },
+          { row: 0, col: -1 }, { row: 0, col: 1 }
+        ];
+
+        for (const dir of directions) {
+          const newRow = pos.row + dir.row;
+          const newCol = pos.col + dir.col;
+
+          if (newRow >= 0 && newRow < this.gridSize && 
+              newCol >= 0 && newCol < this.gridSize && 
+              !this.isObstacle(newRow, newCol)) {
+            neighbors.push({ row: newRow, col: newCol });
+          }
+        }
+
+        return neighbors;
+      },
+
+      reconstructPath(node) {
+        const path = [];
+        let current = node;
+        
+        while (current) {
+          path.unshift({ row: current.row, col: current.col });
+          current = current.parent;
         }
         
-        function playClick() {
-            clickAudio.currentTime = 0;
-            clickAudio.volume = 0.3;
-            clickAudio.play();
+        return path;
+      },
+
+      compareWithAI() {
+        if (!this.userReachedGoal) {
+          alert('請先到達目標！Please reach the goal first!');
+          return;
         }
+
+        document.getElementById('comparisonPanel').classList.remove('hidden');
         
-        function playSuccess() {
-            successAudio.currentTime = 0;
-            successAudio.volume = 0.6;
-            successAudio.play();
-        }
-
-        const GRID_SIZE = 8;
-        let humanPath = [];
-        let aiPath = [];
-        let gameBoard = [];
-        let pyodide = null;
-        let aiDemoShown = false;
-        let gameActive = false;
-
-        const START = {x: 0, y: 0};
-        const GOAL = {x: 7, y: 7};
-
-        async function initPyodide() {
-            logConsole("⏳ Loading Python...");
-            pyodide = await loadPyodide();
-            
-            await pyodide.runPythonAsync(`
-import heapq
-
-def a_star_search(start, goal, grid_size=8):
-    def get_neighbors(pos):
-        x, y = pos
-        neighbors = []
-        for dx, dy in [(0,1), (1,0), (0,-1), (-1,0)]:
-            nx, ny = x + dx, y + dy
-            if 0 <= nx < grid_size and 0 <= ny < grid_size:
-                neighbors.append((nx, ny))
-        return neighbors
-    
-    def manhattan(p1, p2):
-        return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
-    
-    open_set = []
-    heapq.heappush(open_set, (0, start))
-    came_from = {}
-    g_cost = {start: 0}
-    nodes = 0
-    
-    while open_set:
-        _, current = heapq.heappop(open_set)
-        nodes += 1
+        const efficiency = Math.round((this.aiPath.length / this.userPath.length) * 100);
+        document.getElementById('efficiencyScore').textContent = `效率: ${efficiency}%`;
         
-        if current == goal:
-            path = []
-            while current in came_from:
-                path.append(current)
-                current = came_from[current]
-            path.append(start)
-            path.reverse()
-            return {'path': path, 'length': len(path), 'nodes_explored': nodes}
-        
-        for neighbor in get_neighbors(current):
-            tentative_g = g_cost[current] + 1
-            if neighbor not in g_cost or tentative_g < g_cost[neighbor]:
-                came_from[neighbor] = current
-                g_cost[neighbor] = tentative_g
-                f = tentative_g + manhattan(neighbor, goal)
-                heapq.heappush(open_set, (f, neighbor))
-    return None
-            `);
-            
-            logConsole("✅ Python ready!");
+        if (efficiency === 100) {
+          document.getElementById('perfectTrophy').classList.remove('hidden');
         }
 
-        async function showAIDemo() {
-            if (!pyodide) {
-                alert('Please wait...');
-                return;
-            }
-            
-            initAudio();
-            aiDemoShown = true;
-            
-            logConsole("\n🤖 AI Demo starting...");
-            humanPath = [{x: START.x, y: START.y}];
-            createBoard();
-            
-            const result = await pyodide.runPythonAsync(`a_star_search((${START.x}, ${START.y}), (${GOAL.x}, ${GOAL.y}), ${GRID_SIZE})`);
-            const aiResult = result.toJs({dict_converter: Object.fromEntries});
-            const demoPath = aiResult.path.map(p => ({x: p[0], y: p[1]}));
-            
-            for (let i = 0; i < demoPath.length; i++) {
-                await new Promise(r => setTimeout(r, 400));
-                const pos = demoPath[i];
-                const cell = gameBoard[pos.y][pos.x];
-                
-                if (i > 0 && i < demoPath.length - 1) {
-                    cell.classList.add('cell-ai-path', 'ai-demo-cell');
-                    cell.textContent = i;
-                    playClick();
-                }
-                logConsole(`AI: (${pos.x}, ${pos.y})`);
-            }
-            
-            playSuccess();
-            logConsole(`\n✅ AI: ${demoPath.length} steps`);
-            logConsole(`\n👉 YOUR TURN! Try to beat AI!`);
-            
-            alert('🤖 AI演示完成！\n\n👉 現在輪到你！試試看能否找到一樣短的路徑！');
-            
-            setTimeout(() => {
-                humanPath = [{x: START.x, y: START.y}];
-                createBoard();
-                gameActive = true;
-            }, 1000);
-        }
+        const logHtml = [
+          ...this.aiPath.map((pos, i) => `AI: (${pos.row}, ${pos.col})`),
+          `🏁 AI: ${this.aiPath.length} steps | 100%`,
+          `🎯 YOUR TURN! Try to beat AI!`,
+          ...this.userPath.map((pos, i) => `You: (${pos.row}, ${pos.col})`),
+          `You: ${this.userPath.length} | AI: ${this.aiPath.length} | ${efficiency}%`
+        ].map(text => `<p>${text}</p>`).join('');
 
-        function createBoard() {
-            const board = document.getElementById('game-board');
-            board.innerHTML = '';
-            board.style.display = 'grid';
-            board.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 60px)`;
-            board.style.gap = '2px';
-            
-            gameBoard = [];
-            
-            for (let y = 0; y < GRID_SIZE; y++) {
-                gameBoard[y] = [];
-                for (let x = 0; x < GRID_SIZE; x++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'grid-cell';
-                    
-                    if (x === START.x && y === START.y) {
-                        cell.classList.add('cell-start');
-                        cell.innerHTML = '<div style="background: rgba(0,0,0,0.6); padding: 2px; border-radius: 3px; font-size: 10px;">慈濟</div>';
-                    } else if (x === GOAL.x && y === GOAL.y) {
-                        cell.classList.add('cell-goal');
-                        cell.innerHTML = '<div style="background: rgba(0,0,0,0.6); padding: 2px; border-radius: 3px; font-size: 10px;">食物</div>';
-                    }
-                    
-                    cell.addEventListener('click', () => handleCellClick(x, y));
-                    board.appendChild(cell);
-                    gameBoard[y][x] = cell;
-                }
-            }
-            
-            updateStats();
-        }
+        document.getElementById('pathLog').innerHTML = logHtml;
+      },
 
-        function handleCellClick(x, y) {
-            if (!aiDemoShown) {
-                alert('👆 請先看AI演示！');
-                return;
-            }
-            
-            if (!gameActive) return;
-            
-            initAudio();
-            
-            if (x === START.x && y === START.y) return;
-            
-            // CRITICAL FIX: Allow clicking goal!
-            if (humanPath.length > 0) {
-                const last = humanPath[humanPath.length - 1];
-                const dx = Math.abs(x - last.x);
-                const dy = Math.abs(y - last.y);
-                
-                if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
-                    playClick();
-                } else {
-                    alert('只能相鄰！');
-                    return;
-                }
-            }
-            
-            const inPath = humanPath.some(p => p.x === x && p.y === y);
-            if (inPath && !(x === GOAL.x && y === GOAL.y)) {
-                alert('已在路徑中！');
-                return;
-            }
-            
-            humanPath.push({x, y});
-            
-            if (!(x === GOAL.x && y === GOAL.y)) {
-                gameBoard[y][x].classList.add('cell-human-path');
-                gameBoard[y][x].textContent = humanPath.length - 1;
-            }
-            
-            updateStats();
-            logConsole(`You: (${x}, ${y})`);
-            
-            // CHECK GOAL
-            if (x === GOAL.x && y === GOAL.y) {
-                gameActive = false;
-                playSuccess();
-                gameBoard[y][x].classList.add('celebrating');
-                
-                logConsole('\n🎉🎉🎉 YOU REACHED GOAL!');
-                logConsole('🎉🎉🎉 你到達終點了！');
-                
-                setTimeout(() => {
-                    gameBoard[y][x].classList.remove('celebrating');
-                    if (confirm('🎉 恭喜到達終點！\n🎉 Goal Reached!\n\n與AI比較？\nCompare with AI?')) {
-                        runAICompare();
-                    }
-                }, 1000);
-            }
-        }
+      resetGame() {
+        this.userPath = [{ ...this.start }];
+        this.currentPos = { row: 0, col: 0 };
+        this.userReachedGoal = false;
+        document.getElementById('compareBtn').disabled = true;
+        document.getElementById('comparisonPanel').classList.add('hidden');
+        document.getElementById('celebration').classList.add('hidden');
+        document.getElementById('perfectTrophy').classList.add('hidden');
+        this.renderGrid();
+        this.updateStats();
+      },
 
-        function updateStats() {
-            document.getElementById('human-length').textContent = humanPath.length;
-            if (humanPath.length > 0) {
-                const last = humanPath[humanPath.length - 1];
-                document.getElementById('human-current').textContent = `(${last.x}, ${last.y})`;
-            }
-        }
+      hideCelebration() {
+        document.getElementById('celebration').classList.add('hidden');
+      },
 
-        function resetGame() {
-            humanPath = [{x: START.x, y: START.y}];
-            gameActive = aiDemoShown;
-            createBoard();
-            document.getElementById('ai-results').classList.add('hidden');
-            document.getElementById('comparison').classList.add('hidden');
-            logConsole("🔄 Reset!");
-        }
+      goToNext() {
+        alert('下一個算法coming soon! Next algorithm coming soon!');
+      },
 
-        function undoLastStep() {
-            if (humanPath.length <= 1) return;
-            const removed = humanPath.pop();
-            const cell = gameBoard[removed.y][removed.x];
-            cell.classList.remove('cell-human-path');
-            cell.textContent = '';
-            updateStats();
-        }
+      goBack() {
+        window.location.href = 'index.html';
+      }
+    };
 
-        async function runAICompare() {
-            if (humanPath[humanPath.length - 1].x !== GOAL.x || humanPath[humanPath.length - 1].y !== GOAL.y) {
-                alert('請先到達終點！');
-                return;
-            }
-            
-            document.getElementById('waiting-message').classList.add('hidden');
-            logConsole("\n🤖 Running AI...");
-            
-            const result = await pyodide.runPythonAsync(`a_star_search((${START.x}, ${START.y}), (${GOAL.x}, ${GOAL.y}), ${GRID_SIZE})`);
-            const aiResult = result.toJs({dict_converter: Object.fromEntries});
-            aiPath = aiResult.path.map(p => ({x: p[0], y: p[1]}));
-            
-            aiPath.forEach((pos, idx) => {
-                if (idx === 0 || (pos.x === GOAL.x && pos.y === GOAL.y)) return;
-                const cell = gameBoard[pos.y][pos.x];
-                if (cell.classList.contains('cell-human-path')) {
-                    cell.classList.add('cell-both-path');
-                    cell.textContent = '✓';
-                } else {
-                    cell.classList.add('cell-ai-path');
-                    cell.textContent = 'AI';
-                }
-            });
-            
-            document.getElementById('ai-results').classList.remove('hidden');
-            document.getElementById('ai-length').textContent = aiResult.length;
-            document.getElementById('ai-nodes').textContent = aiResult.nodes_explored;
-            
-            const eff = Math.round((aiResult.length / humanPath.length) * 100);
-            document.getElementById('comparison').classList.remove('hidden');
-            document.getElementById('efficiency').textContent = eff + '%';
-            
-            let msg = '';
-            if (eff === 100) {
-                msg = '🏆 PERFECT!';
-                playSuccess();
-            } else if (eff >= 90) {
-                msg = '🌟 Excellent!';
-            } else {
-                msg = '💡 Try again?';
-            }
-            document.getElementById('efficiency-message').textContent = msg;
-            
-            logConsole(`\nYou: ${humanPath.length} | AI: ${aiResult.length} | ${eff}%`);
-        }
-
-        function logConsole(msg) {
-            const log = document.getElementById('console-log');
-            const p = document.createElement('p');
-            p.textContent = msg;
-            log.appendChild(p);
-            log.scrollTop = log.scrollHeight;
-        }
-
-        document.getElementById('ai-demo-btn').addEventListener('click', showAIDemo);
-        document.getElementById('reset-btn').addEventListener('click', resetGame);
-        document.getElementById('submit-btn').addEventListener('click', runAICompare);
-        document.getElementById('undo-btn').addEventListener('click', undoLastStep);
-
-        window.addEventListener('load', async () => {
-            createBoard();
-            await initPyodide();
-            logConsole("👆 Click 🤖 to watch AI demo!");
-        });
-    </script>
+    // Initialize game when page loads
+    window.addEventListener('DOMContentLoaded', () => game.init());
+  </script>
 </body>
 </html>
