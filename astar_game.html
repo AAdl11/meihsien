@@ -16,9 +16,9 @@
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s;
-            font-size: 14px;
+            font-size: 12px;
         }
-        .grid-cell:hover {
+        .grid-cell:hover:not(.cell-start):not(.cell-goal) {
             background: #e0f2fe;
             transform: scale(1.05);
         }
@@ -76,7 +76,8 @@
                     <ol class="list-decimal list-inside text-sm space-y-1">
                         <li>點擊格子選擇你的路徑 | Click cells to choose your path</li>
                         <li>從綠色🏢(起點)到紅色🎯(終點) | From green 🏢 (start) to red 🎯 (goal)</li>
-                        <li>只能往上下左右移動 | Only move up/down/left/right</li>
+                        <li><span class="font-bold text-yellow-300">只能往上下左右移動 (不能斜走!)</span><br>
+                            <span class="font-bold text-yellow-300">Only move up/down/left/right (NO diagonals!)</span></li>
                         <li>完成後點擊"提交路徑"比較結果 | Click "Submit Path" to compare</li>
                     </ol>
                 </div>
@@ -142,7 +143,8 @@
                         <p>• A* 使用曼哈頓距離作為啟發式函數</p>
                         <p>• A* uses Manhattan distance as heuristic</p>
                         <p class="font-mono">f(n) = g(n) + h(n)</p>
-                        <p>• 保證找到最優路徑 | Guarantees optimal path</p>
+                        <p class="text-yellow-300">• <strong>AI也只能上下左右移動 (公平競爭!)</strong></p>
+                        <p class="text-yellow-300">• <strong>AI also moves only up/down/left/right (fair game!)</strong></p>
                     </div>
                 </div>
 
@@ -189,18 +191,21 @@ import heapq
 from typing import List, Tuple, Dict
 
 def manhattan_distance(pos1: Tuple[int, int], pos2: Tuple[int, int]) -> int:
-    """Calculate Manhattan distance between two positions"""
+    """Calculate Manhattan distance - only horizontal + vertical moves"""
     return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
 
 def a_star_search(start: Tuple[int, int], goal: Tuple[int, int], grid_size: int = 8):
     """
     A* pathfinding algorithm
-    Returns optimal path with statistics
+    IMPORTANT: Only allows up/down/left/right moves (NO diagonals!)
+    This ensures fair comparison with human player
     """
     
     def get_neighbors(pos):
+        """Get only orthogonal neighbors (up/down/left/right)"""
         x, y = pos
         neighbors = []
+        # Only 4 directions: up, right, down, left
         for dx, dy in [(0,1), (1,0), (0,-1), (-1,0)]:
             nx, ny = x + dx, y + dy
             if 0 <= nx < grid_size and 0 <= ny < grid_size:
@@ -237,13 +242,15 @@ def a_star_search(start: Tuple[int, int], goal: Tuple[int, int], grid_size: int 
                 'optimal': True
             }
         
-        # Explore neighbors
+        # Explore only orthogonal neighbors
         for neighbor in get_neighbors(current):
+            # Cost is always 1 for orthogonal moves
             tentative_g = g_cost[current] + 1
             
             if neighbor not in g_cost or tentative_g < g_cost[neighbor]:
                 came_from[neighbor] = current
                 g_cost[neighbor] = tentative_g
+                # Manhattan heuristic is perfect for grid with no diagonals
                 f_cost = tentative_g + manhattan_distance(neighbor, goal)
                 heapq.heappush(open_set, (f_cost, neighbor))
     
@@ -304,13 +311,17 @@ def run_astar(start_x, start_y, goal_x, goal_y, grid_size=8):
                 return;
             }
             
-            // Must be adjacent to last position
+            // Must be adjacent to last position (only orthogonal)
             if (humanPath.length > 0) {
                 const last = humanPath[humanPath.length - 1];
-                const distance = Math.abs(x - last.x) + Math.abs(y - last.y);
+                const dx = Math.abs(x - last.x);
+                const dy = Math.abs(y - last.y);
                 
-                if (distance !== 1) {
-                    alert('只能移動到相鄰格子！\nCan only move to adjacent cells!');
+                // Must be exactly 1 step in ONE direction (no diagonals!)
+                if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
+                    // Valid move
+                } else {
+                    alert('只能移動到相鄰格子 (上下左右，不能斜走)！\nCan only move to adjacent cells (up/down/left/right, NO diagonals)!');
                     return;
                 }
             }
@@ -333,7 +344,14 @@ def run_astar(start_x, start_y, goal_x, goal_y, grid_size=8):
             // Check if reached goal
             if (x === GOAL.x && y === GOAL.y) {
                 logConsole('🎉 你到達終點了！You reached the goal!');
-                logConsole('現在可以提交路徑比較結果！Click Submit to compare!');
+                logConsole('點擊綠色按鈕提交！Click green button to submit!');
+                
+                // Auto-run AI comparison
+                setTimeout(() => {
+                    if (confirm('你已到達終點！是否立即執行AI比較？\nYou reached the goal! Run AI comparison now?')) {
+                        runAIAndCompare();
+                    }
+                }, 500);
             }
         }
 
@@ -381,62 +399,71 @@ def run_astar(start_x, start_y, goal_x, goal_y, grid_size=8):
             
             document.getElementById('waiting-message').classList.add('hidden');
             logConsole("\n🤖 執行 A* 算法... Running A* Algorithm...");
+            logConsole("⚠️ AI也只能上下左右移動 (公平競爭)");
+            logConsole("⚠️ AI also uses only orthogonal moves (fair game)");
             
-            // Run A* through Pyodide
-            const result = await pyodide.runPythonAsync(`
+            try {
+                // Run A* through Pyodide
+                const result = await pyodide.runPythonAsync(`
 run_astar(${START.x}, ${START.y}, ${GOAL.x}, ${GOAL.y}, ${GRID_SIZE})
-            `);
-            
-            const aiResult = result.toJs({dict_converter: Object.fromEntries});
-            aiPath = aiResult.path.map(p => ({x: p[0], y: p[1]}));
-            
-            logConsole(`✅ A* Complete! 路徑長度: ${aiResult.length}`);
-            logConsole(`Nodes explored: ${aiResult.nodes_explored}`);
-            
-            // Display AI path
-            aiPath.forEach((pos, idx) => {
-                if (idx === 0 || (pos.x === GOAL.x && pos.y === GOAL.y)) return;
+                `);
                 
-                const cell = gameBoard[pos.y][pos.x];
-                if (cell.classList.contains('cell-human-path')) {
-                    cell.classList.add('cell-both-path');
-                    cell.textContent = '✓';
+                const aiResult = result.toJs({dict_converter: Object.fromEntries});
+                aiPath = aiResult.path.map(p => ({x: p[0], y: p[1]}));
+                
+                logConsole(`✅ A* Complete! 路徑長度: ${aiResult.length}`);
+                logConsole(`Nodes explored: ${aiResult.nodes_explored}`);
+                
+                // Display AI path
+                aiPath.forEach((pos, idx) => {
+                    if (idx === 0 || (pos.x === GOAL.x && pos.y === GOAL.y)) return;
+                    
+                    const cell = gameBoard[pos.y][pos.x];
+                    if (cell.classList.contains('cell-human-path')) {
+                        cell.classList.add('cell-both-path');
+                        cell.textContent = '✓';
+                    } else {
+                        cell.classList.add('cell-ai-path');
+                        cell.textContent = 'AI';
+                    }
+                });
+                
+                // Show results
+                document.getElementById('ai-results').classList.remove('hidden');
+                document.getElementById('ai-length').textContent = aiResult.length;
+                document.getElementById('ai-nodes').textContent = aiResult.nodes_explored;
+                
+                // Calculate comparison
+                const humanLength = humanPath.length;
+                const aiLength = aiResult.length;
+                const efficiency = Math.round((aiLength / humanLength) * 100);
+                
+                document.getElementById('comparison').classList.remove('hidden');
+                document.getElementById('efficiency').textContent = efficiency + '%';
+                document.getElementById('step-diff').textContent = `${humanLength - aiLength} steps`;
+                
+                let message = '';
+                if (efficiency === 100) {
+                    message = '🏆 完美！你找到了最優路徑！<br>Perfect! You found the optimal path!';
+                } else if (efficiency >= 90) {
+                    message = '🌟 太棒了！非常接近最優解！<br>Excellent! Very close to optimal!';
+                } else if (efficiency >= 80) {
+                    message = '👍 很好！接近最優解！<br>Great! Close to optimal!';
                 } else {
-                    cell.classList.add('cell-ai-path');
-                    cell.textContent = 'AI';
+                    message = '💡 繼續努力！試試能否更短？<br>Keep trying! Can you find a shorter path?';
                 }
-            });
-            
-            // Show results
-            document.getElementById('ai-results').classList.remove('hidden');
-            document.getElementById('ai-length').textContent = aiResult.length;
-            document.getElementById('ai-nodes').textContent = aiResult.nodes_explored;
-            
-            // Calculate comparison
-            const humanLength = humanPath.length;
-            const aiLength = aiResult.length;
-            const efficiency = Math.round((aiLength / humanLength) * 100);
-            
-            document.getElementById('comparison').classList.remove('hidden');
-            document.getElementById('efficiency').textContent = efficiency + '%';
-            document.getElementById('step-diff').textContent = `${humanLength - aiLength} steps`;
-            
-            let message = '';
-            if (efficiency === 100) {
-                message = '🏆 完美！你找到了最優路徑！<br>Perfect! You found the optimal path!';
-            } else if (efficiency >= 90) {
-                message = '🌟 太棒了！非常接近最優解！<br>Excellent! Very close to optimal!';
-            } else if (efficiency >= 80) {
-                message = '👍 很好！接近最優解！<br>Great! Close to optimal!';
-            } else {
-                message = '💡 繼續努力！試試能否更短？<br>Keep trying! Can you find a shorter path?';
+                document.getElementById('efficiency-message').innerHTML = message;
+                
+                logConsole(`\n📊 Comparison 比較結果:`);
+                logConsole(`Your path 你的路徑: ${humanLength} steps`);
+                logConsole(`AI optimal AI最優: ${aiLength} steps`);
+                logConsole(`Efficiency 效率: ${efficiency}%`);
+                
+            } catch (error) {
+                console.error("AI execution error:", error);
+                logConsole(`❌ Error: ${error.message}`);
+                alert('AI執行出錯！請重新整理頁面。\nAI error! Please refresh the page.');
             }
-            document.getElementById('efficiency-message').innerHTML = message;
-            
-            logConsole(`\n📊 Comparison 比較結果:`);
-            logConsole(`Your path 你的路徑: ${humanLength} steps`);
-            logConsole(`AI optimal AI最優: ${aiLength} steps`);
-            logConsole(`Efficiency 效率: ${efficiency}%`);
         }
 
         function logConsole(message) {
