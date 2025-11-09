@@ -156,14 +156,23 @@
     .grid-cell.obstacle {
       background-color: #34495e;
       cursor: not-allowed;
+      font-size: 32px;
     }
 
     .grid-cell.start {
-      background-color: #2ecc71;
+      background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+      box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
     }
 
     .grid-cell.goal {
-      background-color: #e74c3c;
+      background: linear-gradient(135deg, #ffe5b4 0%, #ffd700 100%);
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+      animation: goalPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes goalPulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }
+      50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.9); }
     }
 
     .grid-cell.user-path {
@@ -189,10 +198,10 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      color: #000;
+      color: #fff;
       font-weight: bold;
       font-size: 24px;
-      text-shadow: 0 0 3px white, 0 0 5px white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
       z-index: 10;
       pointer-events: none;
     }
@@ -205,6 +214,7 @@
       font-size: 32px;
       z-index: 5;
       pointer-events: none;
+      filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
     }
 
     .controls {
@@ -429,9 +439,17 @@
   </style>
 </head>
 <body>
-  <!-- Background Music -->
+  <!-- Audio Elements -->
   <audio id="bgMusic" loop>
     <source src="https://cdn.pixabay.com/audio/2022/03/10/audio_4a1f6447e8.mp3" type="audio/mpeg">
+  </audio>
+  
+  <audio id="clickSound" preload="auto">
+    <source src="https://cdn.pixabay.com/audio/2021/08/04/audio_12b0c7443c.mp3" type="audio/mpeg">
+  </audio>
+  
+  <audio id="successSound" preload="auto">
+    <source src="https://cdn.pixabay.com/audio/2021/08/04/audio_0625c1539c.mp3" type="audio/mpeg">
   </audio>
 
   <div id="app">
@@ -456,8 +474,8 @@
               <br><span class="bilingual">Click 🤖 to watch AI demonstration first</span>
             </li>
             <li>
-              從<span class="highlight">綠色慈濟會所 🚚💙</span> 到 <span class="highlight">紅色食物中心 🏪🍎</span>
-              <br><span class="bilingual">Navigate from Green Tzu Chi Center to Red Food Pantry</span>
+              從<span class="highlight">綠色慈濟會所 🚚💙</span> 到 <span class="highlight">金色食物中心 🏪🍎</span>
+              <br><span class="bilingual">Navigate from Green Tzu Chi Center to Golden Food Pantry</span>
             </li>
             <li>
               <span class="highlight">只能上下左右移動！</span>
@@ -549,8 +567,13 @@
       start: { row: 0, col: 0 },
       goal: { row: 7, col: 7 },
       obstacles: [
-        { row: 1, col: 1 }, { row: 2, col: 1 }, { row: 3, col: 1 },
-        { row: 4, col: 1 }, { row: 5, col: 1 }, { row: 6, col: 1 }
+        { row: 0, col: 3, icon: '🏢' },
+        { row: 1, col: 2, icon: '📦' },
+        { row: 1, col: 6, icon: '🚧' },
+        { row: 2, col: 4, icon: '🏗️' },
+        { row: 3, col: 1, icon: '🚪' },
+        { row: 4, col: 5, icon: '📦' },
+        { row: 5, col: 2, icon: '⬛' }
       ],
       userPath: [],
       currentPos: { row: 0, col: 0 },
@@ -567,7 +590,6 @@
       },
 
       stopAllPreviousMusic() {
-        // Stop index.html music completely
         if (window.opener) {
           try {
             if (window.opener.stopBackgroundMusic) {
@@ -587,8 +609,25 @@
 
       playBackgroundMusic() {
         const bgMusic = document.getElementById('bgMusic');
-        bgMusic.volume = 0.3;
-        bgMusic.play().catch(e => console.log('Audio autoplay prevented'));
+        bgMusic.volume = 0.25;
+        bgMusic.play().catch(e => {
+          document.addEventListener('click', () => {
+            bgMusic.play().catch(() => {});
+          }, { once: true });
+        });
+      },
+
+      playClickSound() {
+        const clickSound = document.getElementById('clickSound');
+        clickSound.currentTime = 0;
+        clickSound.volume = 0.4;
+        clickSound.play().catch(e => console.log('Click sound failed'));
+      },
+
+      playSuccessSound() {
+        const successSound = document.getElementById('successSound');
+        successSound.volume = 0.5;
+        successSound.play().catch(e => console.log('Success sound failed'));
       },
 
       renderGrid() {
@@ -609,6 +648,11 @@
             const cellClass = this.getCellClass(row, col);
             if (cellClass) cell.classList.add(cellClass);
 
+            const obstacle = this.obstacles.find(obs => obs.row === row && obs.col === col);
+            if (obstacle) {
+              cell.textContent = obstacle.icon;
+            }
+
             if (this.isStart(row, col)) {
               const icon = document.createElement('span');
               icon.className = 'cell-icon';
@@ -624,7 +668,7 @@
             }
 
             const stepNum = this.getStepNumber(row, col);
-            if (stepNum) {
+            if (stepNum && !this.isObstacle(row, col)) {
               const numSpan = document.createElement('span');
               numSpan.className = 'step-number';
               numSpan.textContent = stepNum;
@@ -689,6 +733,7 @@
         const colDiff = Math.abs(col - this.currentPos.col);
         
         if ((rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1)) {
+          this.playClickSound();
           this.userPath.push({ row, col });
           this.currentPos = { row, col };
           this.renderGrid();
@@ -697,7 +742,10 @@
           if (this.isGoal(row, col)) {
             this.userReachedGoal = true;
             document.getElementById('compareBtn').disabled = false;
-            document.getElementById('celebration').classList.remove('hidden');
+            this.playSuccessSound();
+            setTimeout(() => {
+              document.getElementById('celebration').classList.remove('hidden');
+            }, 300);
           }
         } else {
           alert('只能上下左右移動一格！\nOnly move up/down/left/right one cell!');
@@ -777,6 +825,7 @@
           const cell = document.querySelector(`[data-row="${pos.row}"][data-col="${pos.col}"]`);
           
           if (cell && !this.isStart(pos.row, pos.col) && !this.isGoal(pos.row, pos.col)) {
+            this.playClickSound();
             cell.classList.add('ai-current');
             await this.sleep(300);
             cell.classList.remove('ai-current');
@@ -785,6 +834,7 @@
           this.renderGrid();
           await this.sleep(200);
         }
+        this.playSuccessSound();
       },
 
       sleep(ms) {
