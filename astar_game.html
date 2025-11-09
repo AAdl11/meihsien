@@ -47,9 +47,31 @@
             color: white;
             font-weight: bold;
         }
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3) rotate(10deg); }
+        }
+        .celebrating {
+            animation: celebrate 0.5s ease-in-out;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .ai-demo-cell {
+            animation: pulse 0.8s ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-purple-900 to-blue-900 min-h-screen text-white">
+    
+    <!-- Audio Elements -->
+    <audio id="clickSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGGS57OahUhELTKXh8bllHgU2jdXuy3UpBSh+zPDajzsKFV+16+qnVRQLRp/g8r5sIQUrgc7y2Yk2CBhkuezmoVIRC0yl4fG5ZR4FNo3V7st1KQUofszw2o87ChVftevqp1UUC0af4PK+bCEFK4HO8tmJNggYZLns5qFSEQtMpeHxuWUeBTaN1e7LdSkFKH7M8NqPOwoVX7Xr6qdVFAtGn+DyvmwhBSuBzvLZiTYIGGS57OahUhELTKXh8bllHgU2jdXuy3UpBSh+zPDajzsKFV+16+qnVRQLRp/g8r5sIQUrgc7y2Yk2CBhkuezmoVIRC0yl4fG5ZR4FNo3V7st1KQUofszw2o87ChVftevqp1UUC0af4PK+bCEFK4HO8tmJNggYZLns5qFSEQtMpeHxuWUeBTaN1e7LdSkFKH7M8NqPOwoVX7Xr6qdVFAtGn+DyvmwhBSuBzvLZiTYIGGS57OahUhELTKXh8bllHgU2jdXuy3UpBSh+zPDajzsKFV+16+qnVRQLRp/g8r5sIQUrgc7y2Yk2CBhkuezmoVIRC0yl4fG5ZR4FNo3V7st1KQUofszw2o87ChVftevqp1UUC0af4PK+bCEFK4HO8tmJNggYZLns5qFSEQtMpeHxuWUeBTaN1e7LdSkFKH7M8NqPOwoVX7Xr6qdVFAtGn+DyvmwhBSuBzvLZiTYIGGS57OahUhELTKXh8bllHgU2jdXuy3UpBSh+zPDajzsKFV+16+qnVRQLRp/g8r5sIQU=" type="audio/wav">
+    </audio>
+    <audio id="successSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGGS57OahUhELTKXh8bllHgU2jdXuy3UpBSh+zPDajzsKFV+16+qnVRQLRp/g8r5sIQUrgc7y2Yk2CBhkuezmoVIRC0yl4fG5ZR4FNo3V7st1KQUofszw2o87ChVftevqp1UUC0af4PK+bCEFK4HO8tmJNggYZLns5qFSEQtMpeHxuWUeBTaN1e7LdSkFKH7M8NqPOwoVX7Xr6qdVFAtGn+DyvmwhBSuBzvLZiTYIGGS57OahUhELTKXh8bllHgU2jdXuy3UpBSh+zPDajzsKFV+16+qnVRQLRp/g8r5sIQUrgc7y2Yk2CBhkuezmoVIRC0yl4fG5ZR4FNo3V7st1KQUofszw2o87ChVftevqp1UUC0af4PK+bCEFK4HO8tmJNggYZLns5qFSEQtMpeHxuWUeBTaN1e7LdSkFKH7M8NqPOwoVX7Xr6qdVFAtGn+DyvmwhBSuBzvLZiTYIGGS57OahUhELTKXh8bllHgU2jdXuy3UpBSh+zPDajzsKFV+16+qnVRQLRp/g8r5sIQUrgc7y2Yk2CBhkuezmoVIRC0yl4fG5ZR4FNo3V7st1KQUofszw2o87ChVftevqp1UUC0af4PK+bCEFK4HO8tmJNggYZLns5qFSEQtMpeHxuWUeBTaN1e7LdSkFKH7M8NqPOwoVX7Xr6qdVFAtGn+DyvmwhBSuBzvLZiTYIGGS57OahUhELTKXh8bllHgU2jdXuy3UpBSh+zPDajzsKFV+16+qnVRQLRp/g8r5sIQU=" type="audio/wav">
+    </audio>
     
     <div class="container mx-auto px-4 py-8">
         <!-- Header -->
@@ -63,6 +85,13 @@
             </p>
         </div>
 
+        <!-- AI Demo Button -->
+        <div class="text-center mb-6">
+            <button id="ai-demo-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full transition text-lg">
+                🤖 先看AI演示 Watch AI Demo First
+            </button>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             <!-- Left: Game Board -->
@@ -74,11 +103,11 @@
                 <div id="instructions" class="mb-4 p-4 bg-blue-500/20 rounded">
                     <p class="font-bold">遊戲說明 Game Instructions:</p>
                     <ol class="list-decimal list-inside text-sm space-y-1">
+                        <li>點擊🤖按鈕先看AI演示 | Click 🤖 to watch AI demo first</li>
                         <li>點擊格子選擇你的路徑 | Click cells to choose your path</li>
-                        <li>從綠色🏢(起點)到紅色🎯(終點) | From green 🏢 (start) to red 🎯 (goal)</li>
-                        <li><span class="font-bold text-yellow-300">只能往上下左右移動 (不能斜走!)</span><br>
-                            <span class="font-bold text-yellow-300">Only move up/down/left/right (NO diagonals!)</span></li>
-                        <li>完成後點擊"提交路徑"比較結果 | Click "Submit Path" to compare</li>
+                        <li>從綠色🏢(起點)到紅色🎯(終點) | From green 🏢 to red 🎯</li>
+                        <li><span class="font-bold text-yellow-300">只能上下左右 (不能斜走!)</span></li>
+                        <li>完成後點擊"提交"比較 | Click "Submit" to compare</li>
                     </ol>
                 </div>
 
@@ -89,21 +118,21 @@
                         🔄 重新開始 Reset
                     </button>
                     <button id="submit-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition">
-                        ✅ 提交路徑 & 執行AI | Submit Path & Run AI
+                        ✅ 提交路徑 & 比較AI | Submit & Compare with AI
                     </button>
                     <button id="undo-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition">
-                        ↩️ 撤銷上一步 Undo
+                        ↩️ 撤銷 Undo
                     </button>
                 </div>
 
                 <div id="human-stats" class="mt-4 p-4 bg-yellow-500/20 rounded-lg">
                     <p class="font-bold">你的統計 Your Stats:</p>
-                    <p>路徑長度 Path Length: <span id="human-length" class="text-2xl font-bold">1</span> 步 steps</p>
-                    <p>當前位置 Current: <span id="human-current" class="font-mono">(0, 0)</span></p>
+                    <p>路徑長度: <span id="human-length" class="text-2xl font-bold">1</span> 步</p>
+                    <p>當前位置: <span id="human-current" class="font-mono">(0, 0)</span></p>
                 </div>
             </div>
 
-            <!-- Right: AI Results & Comparison -->
+            <!-- Right: AI Results -->
             <div class="bg-white/10 p-6 rounded-lg backdrop-blur">
                 <h2 class="text-2xl font-bold mb-4">
                     🤖 AI 最優解 Optimal Solution
@@ -111,28 +140,28 @@
                 
                 <div id="waiting-message" class="mb-4 p-4 bg-purple-500/20 rounded-lg">
                     <p class="text-center text-lg">
-                        ⏳ 等待你完成路徑...<br>
-                        Waiting for you to complete your path...
+                        👆 點擊上方🤖按鈕先看AI演示<br>
+                        Click 🤖 button above to watch AI demo first
                     </p>
                 </div>
 
                 <div id="ai-results" class="mb-4 p-4 bg-blue-500/20 rounded-lg hidden">
                     <p class="font-bold text-green-400 text-xl">✅ A* Complete!</p>
                     <div class="mt-2 space-y-1">
-                        <p>路徑長度 Path Length: <span id="ai-length" class="text-2xl font-bold">-</span> 步 steps</p>
-                        <p>節點探索 Nodes Explored: <span id="ai-nodes" class="text-xl font-bold">-</span> 個 nodes</p>
-                        <p>最佳路徑 Optimal: <span id="ai-optimal" class="text-green-400 font-bold">Yes ✓</span></p>
+                        <p>路徑長度: <span id="ai-length" class="text-2xl font-bold">-</span> 步</p>
+                        <p>節點探索: <span id="ai-nodes" class="text-xl font-bold">-</span> 個</p>
+                        <p>最佳路徑: <span id="ai-optimal" class="text-green-400 font-bold">Yes ✓</span></p>
                     </div>
                 </div>
 
                 <div id="comparison" class="mb-4 p-4 bg-purple-500/20 rounded-lg hidden">
-                    <p class="font-bold text-2xl mb-3">📊 Human vs AI Comparison</p>
+                    <p class="font-bold text-2xl mb-3">📊 Human vs AI</p>
                     <div class="space-y-2">
                         <div class="text-center">
                             <p class="text-sm">你的效率 Your Efficiency:</p>
                             <p id="efficiency" class="text-5xl font-bold text-yellow-300">-</p>
                         </div>
-                        <p>步數差距 Step Difference: <span id="step-diff" class="text-xl font-bold">-</span></p>
+                        <p>步數差距: <span id="step-diff" class="text-xl font-bold">-</span></p>
                         <p id="efficiency-message" class="text-xl font-bold text-center mt-2"></p>
                     </div>
                 </div>
@@ -141,10 +170,8 @@
                     <p class="font-bold mb-2">💡 Algorithm Insight:</p>
                     <div class="text-sm space-y-1">
                         <p>• A* 使用曼哈頓距離作為啟發式函數</p>
-                        <p>• A* uses Manhattan distance as heuristic</p>
-                        <p class="font-mono">f(n) = g(n) + h(n)</p>
-                        <p class="text-yellow-300">• <strong>AI也只能上下左右移動 (公平競爭!)</strong></p>
-                        <p class="text-yellow-300">• <strong>AI also moves only up/down/left/right (fair game!)</strong></p>
+                        <p>• f(n) = g(n) + h(n)</p>
+                        <p class="text-yellow-300">• AI也只能上下左右移動 (公平競爭!)</p>
                     </div>
                 </div>
 
@@ -155,7 +182,6 @@
             </div>
         </div>
 
-        <!-- Back Button -->
         <div class="text-center mt-8">
             <a href="index.html" class="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-bold py-3 px-8 rounded-full transition inline-block">
                 ← 返回主選單 Back to Main Menu
@@ -165,6 +191,41 @@
 
     <script>
         // ============================================================================
+        // AUDIO SYSTEM
+        // ============================================================================
+        const clickAudio = document.getElementById('clickSound');
+        const successAudio = document.getElementById('successSound');
+        let bgMusicAudio = null;
+        let audioInitialized = false;
+        
+        function initAudio() {
+            if (audioInitialized) return;
+            audioInitialized = true;
+            
+            // Create and play background music
+            bgMusicAudio = new Audio('music/stage1.mp3');
+            bgMusicAudio.loop = true;
+            bgMusicAudio.volume = 0.2;
+            bgMusicAudio.play().catch(e => {
+                console.log('Background music will play on next interaction');
+            });
+            
+            logConsole('🎵 Background music started!');
+        }
+        
+        function playClick() {
+            clickAudio.currentTime = 0;
+            clickAudio.volume = 0.3;
+            clickAudio.play().catch(e => console.log('Click sound failed'));
+        }
+        
+        function playSuccess() {
+            successAudio.currentTime = 0;
+            successAudio.volume = 0.5;
+            successAudio.play().catch(e => console.log('Success sound failed'));
+        }
+
+        // ============================================================================
         // GAME STATE
         // ============================================================================
         const GRID_SIZE = 8;
@@ -172,6 +233,7 @@
         let aiPath = [];
         let gameBoard = [];
         let pyodide = null;
+        let aiDemoShown = false;
 
         const START = {x: 0, y: 0};
         const GOAL = {x: 7, y: 7};
@@ -180,91 +242,112 @@
         // INITIALIZE PYODIDE
         // ============================================================================
         async function initPyodide() {
-            console.log("Loading Pyodide...");
-            logConsole("⏳ Loading Python environment...");
-            logConsole("正在載入Python環境...");
-            
+            logConsole("⏳ Loading Python...");
             pyodide = await loadPyodide();
             
             await pyodide.runPythonAsync(`
 import heapq
-from typing import List, Tuple, Dict
+from typing import Tuple, Dict
 
 def manhattan_distance(pos1: Tuple[int, int], pos2: Tuple[int, int]) -> int:
-    """Calculate Manhattan distance - only horizontal + vertical moves"""
     return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
 
 def a_star_search(start: Tuple[int, int], goal: Tuple[int, int], grid_size: int = 8):
-    """
-    A* pathfinding algorithm
-    IMPORTANT: Only allows up/down/left/right moves (NO diagonals!)
-    This ensures fair comparison with human player
-    """
-    
     def get_neighbors(pos):
-        """Get only orthogonal neighbors (up/down/left/right)"""
         x, y = pos
         neighbors = []
-        # Only 4 directions: up, right, down, left
         for dx, dy in [(0,1), (1,0), (0,-1), (-1,0)]:
             nx, ny = x + dx, y + dy
             if 0 <= nx < grid_size and 0 <= ny < grid_size:
                 neighbors.append((nx, ny))
         return neighbors
     
-    # Initialize data structures
     open_set = []
     heapq.heappush(open_set, (0, start))
-    
     came_from = {}
     g_cost = {start: 0}
-    
     nodes_explored = 0
     
     while open_set:
         current_f, current = heapq.heappop(open_set)
         nodes_explored += 1
         
-        # Goal reached
         if current == goal:
-            # Reconstruct path
             path = []
             while current in came_from:
                 path.append(current)
                 current = came_from[current]
             path.append(start)
             path.reverse()
-            
-            return {
-                'path': path,
-                'length': len(path),
-                'nodes_explored': nodes_explored,
-                'optimal': True
-            }
+            return {'path': path, 'length': len(path), 'nodes_explored': nodes_explored, 'optimal': True}
         
-        # Explore only orthogonal neighbors
         for neighbor in get_neighbors(current):
-            # Cost is always 1 for orthogonal moves
             tentative_g = g_cost[current] + 1
-            
             if neighbor not in g_cost or tentative_g < g_cost[neighbor]:
                 came_from[neighbor] = current
                 g_cost[neighbor] = tentative_g
-                # Manhattan heuristic is perfect for grid with no diagonals
                 f_cost = tentative_g + manhattan_distance(neighbor, goal)
                 heapq.heappush(open_set, (f_cost, neighbor))
-    
     return None
 
 def run_astar(start_x, start_y, goal_x, goal_y, grid_size=8):
-    """Wrapper function for easy calling"""
-    result = a_star_search((start_x, start_y), (goal_x, goal_y), grid_size)
-    return result
+    return a_star_search((start_x, start_y), (goal_x, goal_y), grid_size)
             `);
             
-            console.log("Pyodide loaded!");
-            logConsole("✅ Python environment ready!");
-            logConsole("✅ Python環境準備完成！");
+            logConsole("✅ Python ready!");
+        }
+
+        // ============================================================================
+        // AI DEMO
+        // ============================================================================
+        async function showAIDemo() {
+            if (!pyodide) {
+                alert('請稍候，Python環境載入中...\nPlease wait, loading Python...');
+                return;
+            }
+            
+            initAudio(); // Start music
+            aiDemoShown = true;
+            
+            logConsole("\n🤖 AI Demo - Watch & Learn!");
+            logConsole("觀看AI如何找到最優路徑...");
+            
+            // Reset board
+            humanPath = [{x: START.x, y: START.y}];
+            createBoard();
+            
+            // Run AI
+            const result = await pyodide.runPythonAsync(`run_astar(${START.x}, ${START.y}, ${GOAL.x}, ${GOAL.y}, ${GRID_SIZE})`);
+            const aiResult = result.toJs({dict_converter: Object.fromEntries});
+            const demoPath = aiResult.path.map(p => ({x: p[0], y: p[1]}));
+            
+            // Animate AI path
+            for (let i = 0; i < demoPath.length; i++) {
+                await new Promise(resolve => setTimeout(resolve, 400));
+                const pos = demoPath[i];
+                const cell = gameBoard[pos.y][pos.x];
+                
+                if (i > 0 && i < demoPath.length - 1) {
+                    cell.classList.add('cell-ai-path', 'ai-demo-cell');
+                    cell.textContent = i;
+                    playClick();
+                }
+                
+                logConsole(`AI Step ${i}: (${pos.x}, ${pos.y})`);
+            }
+            
+            playSuccess();
+            logConsole(`\n✅ AI Demo Complete!`);
+            logConsole(`AI found optimal path: ${demoPath.length} steps`);
+            logConsole(`\n👉 Now it's YOUR turn! Click cells to create your path!`);
+            
+            alert('🤖 AI演示完成！\n🤖 AI Demo Complete!\n\n👉 現在輪到你了！試試能否找到同樣短的路徑！\n👉 Now YOUR turn! Try to find a path as short as AI!');
+            
+            // Reset for human play
+            setTimeout(() => {
+                humanPath = [{x: START.x, y: START.y}];
+                createBoard();
+            }, 1000);
         }
 
         // ============================================================================
@@ -306,52 +389,53 @@ def run_astar(start_x, start_y, goal_x, goal_y, grid_size=8):
         }
 
         function handleCellClick(x, y) {
-            // Can't click start or goal
-            if ((x === START.x && y === START.y) || (x === GOAL.x && y === GOAL.y)) {
+            if (!aiDemoShown) {
+                alert('👆 請先點擊上方🤖按鈕觀看AI演示！\n👆 Please watch AI demo first!');
                 return;
             }
             
-            // Must be adjacent to last position (only orthogonal)
+            initAudio(); // Start music on first interaction
+            
+            if ((x === START.x && y === START.y) || (x === GOAL.x && y === GOAL.y)) return;
+            
             if (humanPath.length > 0) {
                 const last = humanPath[humanPath.length - 1];
                 const dx = Math.abs(x - last.x);
                 const dy = Math.abs(y - last.y);
                 
-                // Must be exactly 1 step in ONE direction (no diagonals!)
                 if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
-                    // Valid move
+                    playClick();
                 } else {
-                    alert('只能移動到相鄰格子 (上下左右，不能斜走)！\nCan only move to adjacent cells (up/down/left/right, NO diagonals)!');
+                    alert('只能移動到相鄰格子！');
                     return;
                 }
             }
             
-            // Check if already in path
             const inPath = humanPath.some(p => p.x === x && p.y === y);
             if (inPath) {
-                alert('這個格子已經在路徑中了！\nThis cell is already in your path!');
+                alert('已在路徑中！');
                 return;
             }
             
-            // Add to path
             humanPath.push({x, y});
             gameBoard[y][x].classList.add('cell-human-path');
             gameBoard[y][x].textContent = humanPath.length - 1;
             
             updateHumanStats();
-            logConsole(`Step ${humanPath.length - 1}: (${x}, ${y})`);
+            logConsole(`Your Step ${humanPath.length - 1}: (${x}, ${y})`);
             
-            // Check if reached goal
             if (x === GOAL.x && y === GOAL.y) {
-                logConsole('🎉 你到達終點了！You reached the goal!');
-                logConsole('點擊綠色按鈕提交！Click green button to submit!');
+                playSuccess();
+                gameBoard[y][x].classList.add('celebrating');
+                setTimeout(() => gameBoard[y][x].classList.remove('celebrating'), 500);
                 
-                // Auto-run AI comparison
+                logConsole('🎉 You reached the goal!');
+                
                 setTimeout(() => {
-                    if (confirm('你已到達終點！是否立即執行AI比較？\nYou reached the goal! Run AI comparison now?')) {
+                    if (confirm('🎉 恭喜到達終點！\n\n是否立即與AI比較？\nCompare with AI now?')) {
                         runAIAndCompare();
                     }
-                }, 500);
+                }, 600);
             }
         }
 
@@ -370,14 +454,12 @@ def run_astar(start_x, start_y, goal_x, goal_y, grid_size=8):
             document.getElementById('ai-results').classList.add('hidden');
             document.getElementById('comparison').classList.add('hidden');
             document.getElementById('waiting-message').classList.remove('hidden');
-            document.getElementById('console-log').innerHTML = '';
-            logConsole("🔄 遊戲重置 Game Reset");
-            logConsole("開始新的嘗試！Start new attempt!");
+            logConsole("🔄 Game Reset!");
         }
 
         function undoLastStep() {
             if (humanPath.length <= 1) {
-                alert('不能撤銷起點！\nCannot undo start position!');
+                alert('Cannot undo start!');
                 return;
             }
             
@@ -387,34 +469,22 @@ def run_astar(start_x, start_y, goal_x, goal_y, grid_size=8):
             cell.textContent = '';
             
             updateHumanStats();
-            logConsole(`↩️ Undo: (${removed.x}, ${removed.y})`);
         }
 
         async function runAIAndCompare() {
-            if (humanPath[humanPath.length - 1].x !== GOAL.x || 
-                humanPath[humanPath.length - 1].y !== GOAL.y) {
-                alert('請先到達終點再提交！\nPlease reach the goal first!');
+            if (humanPath[humanPath.length - 1].x !== GOAL.x || humanPath[humanPath.length - 1].y !== GOAL.y) {
+                alert('請先到達終點！');
                 return;
             }
             
             document.getElementById('waiting-message').classList.add('hidden');
-            logConsole("\n🤖 執行 A* 算法... Running A* Algorithm...");
-            logConsole("⚠️ AI也只能上下左右移動 (公平競爭)");
-            logConsole("⚠️ AI also uses only orthogonal moves (fair game)");
+            logConsole("\n🤖 Running A* for comparison...");
             
             try {
-                // Run A* through Pyodide
-                const result = await pyodide.runPythonAsync(`
-run_astar(${START.x}, ${START.y}, ${GOAL.x}, ${GOAL.y}, ${GRID_SIZE})
-                `);
-                
+                const result = await pyodide.runPythonAsync(`run_astar(${START.x}, ${START.y}, ${GOAL.x}, ${GOAL.y}, ${GRID_SIZE})`);
                 const aiResult = result.toJs({dict_converter: Object.fromEntries});
                 aiPath = aiResult.path.map(p => ({x: p[0], y: p[1]}));
                 
-                logConsole(`✅ A* Complete! 路徑長度: ${aiResult.length}`);
-                logConsole(`Nodes explored: ${aiResult.nodes_explored}`);
-                
-                // Display AI path
                 aiPath.forEach((pos, idx) => {
                     if (idx === 0 || (pos.x === GOAL.x && pos.y === GOAL.y)) return;
                     
@@ -428,12 +498,10 @@ run_astar(${START.x}, ${START.y}, ${GOAL.x}, ${GOAL.y}, ${GRID_SIZE})
                     }
                 });
                 
-                // Show results
                 document.getElementById('ai-results').classList.remove('hidden');
                 document.getElementById('ai-length').textContent = aiResult.length;
                 document.getElementById('ai-nodes').textContent = aiResult.nodes_explored;
                 
-                // Calculate comparison
                 const humanLength = humanPath.length;
                 const aiLength = aiResult.length;
                 const efficiency = Math.round((aiLength / humanLength) * 100);
@@ -444,25 +512,21 @@ run_astar(${START.x}, ${START.y}, ${GOAL.x}, ${GOAL.y}, ${GRID_SIZE})
                 
                 let message = '';
                 if (efficiency === 100) {
-                    message = '🏆 完美！你找到了最優路徑！<br>Perfect! You found the optimal path!';
+                    message = '🏆 Perfect! Optimal!';
+                    playSuccess();
                 } else if (efficiency >= 90) {
-                    message = '🌟 太棒了！非常接近最優解！<br>Excellent! Very close to optimal!';
+                    message = '🌟 Excellent!';
                 } else if (efficiency >= 80) {
-                    message = '👍 很好！接近最優解！<br>Great! Close to optimal!';
+                    message = '👍 Great!';
                 } else {
-                    message = '💡 繼續努力！試試能否更短？<br>Keep trying! Can you find a shorter path?';
+                    message = '💡 Try again?';
                 }
                 document.getElementById('efficiency-message').innerHTML = message;
                 
-                logConsole(`\n📊 Comparison 比較結果:`);
-                logConsole(`Your path 你的路徑: ${humanLength} steps`);
-                logConsole(`AI optimal AI最優: ${aiLength} steps`);
-                logConsole(`Efficiency 效率: ${efficiency}%`);
+                logConsole(`\n📊 Results: Your ${humanLength} | AI ${aiLength} | Efficiency ${efficiency}%`);
                 
             } catch (error) {
-                console.error("AI execution error:", error);
                 logConsole(`❌ Error: ${error.message}`);
-                alert('AI執行出錯！請重新整理頁面。\nAI error! Please refresh the page.');
             }
         }
 
@@ -478,6 +542,7 @@ run_astar(${START.x}, ${START.y}, ${GOAL.x}, ${GOAL.y}, ${GRID_SIZE})
         // ============================================================================
         // EVENT LISTENERS
         // ============================================================================
+        document.getElementById('ai-demo-btn').addEventListener('click', showAIDemo);
         document.getElementById('reset-btn').addEventListener('click', resetGame);
         document.getElementById('submit-btn').addEventListener('click', runAIAndCompare);
         document.getElementById('undo-btn').addEventListener('click', undoLastStep);
@@ -488,6 +553,7 @@ run_astar(${START.x}, ${START.y}, ${GOAL.x}, ${GOAL.y}, ${GRID_SIZE})
         window.addEventListener('load', async () => {
             createBoard();
             await initPyodide();
+            logConsole("👆 Click 🤖 button to watch AI demo first!");
         });
     </script>
 </body>
