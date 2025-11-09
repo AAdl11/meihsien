@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>A* 尋路遊戲 | Journey of Kindness</title>
+  <title>A* Pathfinding Game | Journey of Kindness</title>
   <style>
     * {
       margin: 0;
@@ -35,18 +35,25 @@
       text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
 
+    .subtitle {
+      font-size: 1.2em;
+      opacity: 0.9;
+      margin-bottom: 20px;
+    }
+
     .demo-button {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
-      padding: 15px 40px;
+      padding: 18px 50px;
       border-radius: 30px;
-      font-size: 1.1em;
+      font-size: 1.2em;
       cursor: pointer;
       margin: 20px auto;
       display: block;
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
       transition: transform 0.2s;
+      font-weight: bold;
     }
 
     .demo-button:hover {
@@ -78,19 +85,34 @@
     }
 
     .instructions {
-      background: #f8f9fa;
-      padding: 15px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      padding: 20px;
       border-radius: 10px;
       margin-bottom: 20px;
+      border-left: 4px solid #667eea;
+    }
+
+    .instructions strong {
+      color: #667eea;
+      font-size: 1.1em;
+      display: block;
+      margin-bottom: 12px;
     }
 
     .instructions ol {
       margin-left: 20px;
-      line-height: 1.8;
+      line-height: 2;
     }
 
     .instructions li {
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+
+    .bilingual {
+      color: #7f8c8d;
+      font-size: 0.9em;
+      font-style: italic;
     }
 
     .highlight {
@@ -125,9 +147,10 @@
       background-position: center;
     }
 
-    .grid-cell:hover {
+    .grid-cell:hover:not(.obstacle) {
       transform: scale(1.05);
       z-index: 10;
+      box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
     }
 
     .grid-cell.obstacle {
@@ -137,14 +160,10 @@
 
     .grid-cell.start {
       background-color: #2ecc71;
-      color: white;
-      font-weight: bold;
     }
 
     .grid-cell.goal {
       background-color: #e74c3c;
-      color: white;
-      font-weight: bold;
     }
 
     .grid-cell.user-path {
@@ -153,6 +172,16 @@
 
     .grid-cell.ai-path {
       background-color: #3498db;
+    }
+
+    .grid-cell.ai-current {
+      background-color: #9b59b6;
+      animation: pulse 0.5s ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
     }
 
     .step-number {
@@ -199,7 +228,7 @@
       gap: 10px;
     }
 
-    .button:hover {
+    .button:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
@@ -217,6 +246,7 @@
     .button-compare:disabled {
       background: #95a5a6;
       cursor: not-allowed;
+      opacity: 0.6;
     }
 
     .button-next {
@@ -225,7 +255,7 @@
     }
 
     .stats {
-      background: #f8f9fa;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
       padding: 20px;
       border-radius: 10px;
       margin-top: 20px;
@@ -303,6 +333,7 @@
       max-height: 300px;
       overflow-y: auto;
       margin-top: 15px;
+      text-align: left;
     }
 
     .path-log p {
@@ -384,12 +415,29 @@
         grid-template-columns: 1fr;
       }
     }
+
+    .ai-demo-indicator {
+      background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      margin-top: 15px;
+      font-weight: bold;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
   </style>
 </head>
 <body>
+  <!-- Background Music -->
+  <audio id="bgMusic" loop>
+    <source src="https://cdn.pixabay.com/audio/2022/03/10/audio_4a1f6447e8.mp3" type="audio/mpeg">
+  </audio>
+
   <div id="app">
     <div class="header">
       <h1>🗺️ 慈悲之旅 Journey of Kindness</h1>
+      <p class="subtitle">A* Pathfinding Algorithm Demonstration</p>
       <button class="demo-button" onclick="game.showAIDemo()">
         🤖 先看AI演示 Watch AI Demo First
       </button>
@@ -401,11 +449,20 @@
         <h2>✨ 你的路徑 Your Path</h2>
         
         <div class="instructions">
-          <strong>遊戲說明:</strong>
+          <strong>遊戲說明 Game Instructions:</strong>
           <ol>
-            <li>點 🤖 <strong>先看AI演示</strong> | Watch AI demo first</li>
-            <li>從<span class="highlight">綠色慈濟會所</span>到<span class="highlight">紅色食物中心</span></li>
-            <li><span class="highlight">只能上下左右!</span></li>
+            <li>
+              點擊 🤖 <span class="highlight">先看AI演示</span>
+              <br><span class="bilingual">Click 🤖 to watch AI demonstration first</span>
+            </li>
+            <li>
+              從<span class="highlight">綠色慈濟會所 🚚💙</span> 到 <span class="highlight">紅色食物中心 🏪🍎</span>
+              <br><span class="bilingual">Navigate from Green Tzu Chi Center to Red Food Pantry</span>
+            </li>
+            <li>
+              <span class="highlight">只能上下左右移動！</span>
+              <br><span class="bilingual">Only up/down/left/right moves allowed!</span>
+            </li>
           </ol>
         </div>
 
@@ -419,18 +476,18 @@
             ✅ 提交 & 比較AI Submit & Compare AI
           </button>
           <button class="button button-next" onclick="game.goToNext()">
-            ➡️ 繼續
+            ➡️ 繼續 Continue
           </button>
         </div>
 
         <div class="stats hidden" id="userStats">
-          <h3>你的統計:</h3>
+          <h3>你的統計 Your Statistics:</h3>
           <div class="stat-item">
-            <span>路徑長度:</span>
+            <span>路徑長度 Path Length:</span>
             <span class="stat-value" id="userPathLength">0 步</span>
           </div>
           <div class="stat-item">
-            <span>當前:</span>
+            <span>當前位置 Current Position:</span>
             <span class="stat-value" id="currentPos">(0, 0)</span>
           </div>
         </div>
@@ -438,25 +495,29 @@
 
       <!-- Right Panel: AI Solution -->
       <div class="panel">
-        <h2>🤖 AI 最優解</h2>
+        <h2>🤖 AI 最優解 AI Optimal Solution</h2>
         
+        <div class="ai-demo-indicator hidden" id="aiDemoIndicator">
+          🤖 AI is finding the optimal path... Please wait
+        </div>
+
         <div class="results hidden" id="aiResults">
           <div class="result-header">
             <span class="checkmark">✅</span>
             <h3>A* Complete!</h3>
           </div>
           <div class="stat-item">
-            <span>路徑:</span>
+            <span>路徑 Path:</span>
             <span class="stat-value" id="aiPathLength">0 步</span>
           </div>
           <div class="stat-item">
-            <span>探索:</span>
+            <span>探索 Explored:</span>
             <span class="stat-value" id="aiExploredNodes">0 節點</span>
           </div>
         </div>
 
         <div class="comparison hidden" id="comparisonPanel">
-          <h3>📊 Human vs AI</h3>
+          <h3>📊 Human vs AI Comparison</h3>
           <div class="efficiency" id="efficiencyScore">0%</div>
           <div class="trophy hidden" id="perfectTrophy">🏆 PERFECT!</div>
           <div class="path-log" id="pathLog"></div>
@@ -465,7 +526,7 @@
     </div>
 
     <button class="back-button" onclick="game.goBack()">
-      ← 返回主選單
+      ← 返回主選單 Back to Menu
     </button>
 
     <!-- Celebration Modal -->
@@ -473,13 +534,16 @@
       <div class="celebration-content">
         <div class="celebration-emoji">🎉🎊🎉</div>
         <h2>YOU REACHED GOAL!</h2>
-        <p style="font-size: 1.5em; color: #667eea;">太棒了！點擊比較AI!</p>
+        <h2>你到達目標了！</h2>
+        <p style="font-size: 1.5em; color: #667eea; margin-top: 20px;">
+          太棒了！點擊比較AI!<br>
+          <span style="font-size: 0.8em; opacity: 0.8;">Great! Click to compare with AI!</span>
+        </p>
       </div>
     </div>
   </div>
 
   <script>
-    // Pure JavaScript implementation - No Vue needed!
     const game = {
       gridSize: 8,
       start: { row: 0, col: 0 },
@@ -493,28 +557,38 @@
       aiPath: [],
       aiExploredNodes: 0,
       userReachedGoal: false,
+      aiAnimationInProgress: false,
 
       init() {
         this.userPath = [{ ...this.start }];
         this.renderGrid();
-        this.stopBackgroundMusic();
+        this.stopAllPreviousMusic();
+        this.playBackgroundMusic();
       },
 
-      stopBackgroundMusic() {
-        if (window.opener && window.opener.stopBackgroundMusic) {
-          window.opener.stopBackgroundMusic();
-        }
-        try {
-          if (window.opener) {
+      stopAllPreviousMusic() {
+        // Stop index.html music completely
+        if (window.opener) {
+          try {
+            if (window.opener.stopBackgroundMusic) {
+              window.opener.stopBackgroundMusic();
+            }
             const parentAudios = window.opener.document.querySelectorAll('audio');
             parentAudios.forEach(audio => {
               audio.pause();
               audio.currentTime = 0;
+              audio.volume = 0;
             });
+          } catch (e) {
+            console.log('Parent window audio control attempted');
           }
-        } catch (e) {
-          console.log('Could not access parent window audio');
         }
+      },
+
+      playBackgroundMusic() {
+        const bgMusic = document.getElementById('bgMusic');
+        bgMusic.volume = 0.3;
+        bgMusic.play().catch(e => console.log('Audio autoplay prevented'));
       },
 
       renderGrid() {
@@ -529,12 +603,12 @@
             const cell = document.createElement('div');
             cell.className = 'grid-cell';
             cell.onclick = () => this.handleCellClick(row, col);
+            cell.dataset.row = row;
+            cell.dataset.col = col;
 
-            // Add cell classes
             const cellClass = this.getCellClass(row, col);
             if (cellClass) cell.classList.add(cellClass);
 
-            // Add icons
             if (this.isStart(row, col)) {
               const icon = document.createElement('span');
               icon.className = 'cell-icon';
@@ -549,7 +623,6 @@
               cell.appendChild(icon);
             }
 
-            // Add step numbers
             const stepNum = this.getStepNumber(row, col);
             if (stepNum) {
               const numSpan = document.createElement('span');
@@ -605,7 +678,7 @@
       },
 
       handleCellClick(row, col) {
-        if (this.userReachedGoal) return;
+        if (this.userReachedGoal || this.aiAnimationInProgress) return;
         
         if (this.isObstacle(row, col)) {
           alert('不能走到障礙物！Cannot walk through obstacles!');
@@ -627,7 +700,7 @@
             document.getElementById('celebration').classList.remove('hidden');
           }
         } else {
-          alert('只能上下左右移動一格！Only move up/down/left/right one cell!');
+          alert('只能上下左右移動一格！\nOnly move up/down/left/right one cell!');
         }
       },
 
@@ -637,15 +710,23 @@
         document.getElementById('currentPos').textContent = `(${this.currentPos.row}, ${this.currentPos.col})`;
       },
 
-      showAIDemo() {
-        this.runAStar();
+      async showAIDemo() {
+        if (this.aiAnimationInProgress) return;
+        
+        this.aiAnimationInProgress = true;
+        document.getElementById('aiDemoIndicator').classList.remove('hidden');
+        
+        await this.runAStarWithAnimation();
+        
+        document.getElementById('aiDemoIndicator').classList.add('hidden');
         document.getElementById('aiResults').classList.remove('hidden');
         document.getElementById('aiPathLength').textContent = `${this.aiPath.length} 步`;
         document.getElementById('aiExploredNodes').textContent = `${this.aiExploredNodes} 節點`;
-        this.renderGrid();
+        
+        this.aiAnimationInProgress = false;
       },
 
-      runAStar() {
+      async runAStarWithAnimation() {
         const openSet = [{ ...this.start, g: 0, h: this.heuristic(this.start), f: this.heuristic(this.start), parent: null }];
         const closedSet = [];
         let exploredCount = 0;
@@ -658,6 +739,7 @@
           if (current.row === this.goal.row && current.col === this.goal.col) {
             this.aiPath = this.reconstructPath(current);
             this.aiExploredNodes = exploredCount;
+            await this.animateAIPath();
             return;
           }
 
@@ -687,6 +769,26 @@
             }
           }
         }
+      },
+
+      async animateAIPath() {
+        for (let i = 0; i < this.aiPath.length; i++) {
+          const pos = this.aiPath[i];
+          const cell = document.querySelector(`[data-row="${pos.row}"][data-col="${pos.col}"]`);
+          
+          if (cell && !this.isStart(pos.row, pos.col) && !this.isGoal(pos.row, pos.col)) {
+            cell.classList.add('ai-current');
+            await this.sleep(300);
+            cell.classList.remove('ai-current');
+          }
+          
+          this.renderGrid();
+          await this.sleep(200);
+        }
+      },
+
+      sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
       },
 
       heuristic(pos) {
@@ -728,26 +830,27 @@
 
       compareWithAI() {
         if (!this.userReachedGoal) {
-          alert('請先到達目標！Please reach the goal first!');
+          alert('請先到達目標！\nPlease reach the goal first!');
           return;
         }
 
         document.getElementById('comparisonPanel').classList.remove('hidden');
         
         const efficiency = Math.round((this.aiPath.length / this.userPath.length) * 100);
-        document.getElementById('efficiencyScore').textContent = `效率: ${efficiency}%`;
+        document.getElementById('efficiencyScore').textContent = `效率 Efficiency: ${efficiency}%`;
         
         if (efficiency === 100) {
           document.getElementById('perfectTrophy').classList.remove('hidden');
         }
 
         const logHtml = [
-          ...this.aiPath.map((pos, i) => `AI: (${pos.row}, ${pos.col})`),
-          `🏁 AI: ${this.aiPath.length} steps | 100%`,
-          `🎯 YOUR TURN! Try to beat AI!`,
-          ...this.userPath.map((pos, i) => `You: (${pos.row}, ${pos.col})`),
-          `You: ${this.userPath.length} | AI: ${this.aiPath.length} | ${efficiency}%`
-        ].map(text => `<p>${text}</p>`).join('');
+          '<p style="color: #3498db; font-weight: bold;">AI Path (A* Algorithm):</p>',
+          ...this.aiPath.map((pos, i) => `<p>Step ${i+1}: (${pos.row}, ${pos.col})</p>`),
+          `<p style="color: #2ecc71; font-weight: bold;">🏁 AI Total: ${this.aiPath.length} steps | 100% Efficiency</p>`,
+          '<p style="color: #f39c12; font-weight: bold; margin-top: 15px;">Your Path:</p>',
+          ...this.userPath.map((pos, i) => `<p>Step ${i+1}: (${pos.row}, ${pos.col})</p>`),
+          `<p style="color: #e74c3c; font-weight: bold;">📊 Your Total: ${this.userPath.length} steps | ${efficiency}% Efficiency</p>`
+        ].join('');
 
         document.getElementById('pathLog').innerHTML = logHtml;
       },
@@ -756,10 +859,12 @@
         this.userPath = [{ ...this.start }];
         this.currentPos = { row: 0, col: 0 };
         this.userReachedGoal = false;
+        this.aiPath = [];
         document.getElementById('compareBtn').disabled = true;
         document.getElementById('comparisonPanel').classList.add('hidden');
         document.getElementById('celebration').classList.add('hidden');
         document.getElementById('perfectTrophy').classList.add('hidden');
+        document.getElementById('aiResults').classList.add('hidden');
         this.renderGrid();
         this.updateStats();
       },
@@ -769,15 +874,15 @@
       },
 
       goToNext() {
-        alert('下一個算法coming soon! Next algorithm coming soon!');
+        alert('下一個算法coming soon!\nNext algorithm coming soon!');
       },
 
       goBack() {
+        document.getElementById('bgMusic').pause();
         window.location.href = 'index.html';
       }
     };
 
-    // Initialize game when page loads
     window.addEventListener('DOMContentLoaded', () => game.init());
   </script>
 </body>
