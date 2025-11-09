@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A* Search - Journey of Kindness</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+    <style>
+        .grid-cell {
+            width: 50px;
+            height: 50px;
+            border: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        .grid-cell:hover {
+            background: #e0f2fe;
+            transform: scale(1.05);
+        }
+        .cell-start {
+            background: #22c55e !important;
+            color: white;
+            font-weight: bold;
+        }
+        .cell-goal {
+            background: #ef4444 !important;
+            color: white;
+            font-weight: bold;
+        }
+        .cell-human-path {
+            background: #fbbf24 !important;
+            color: #000;
+            font-weight: bold;
+        }
+        .cell-ai-path {
+            background: #3b82f6 !important;
+            color: white;
+            font-weight: bold;
+        }
+        .cell-both-path {
+            background: linear-gradient(135deg, #fbbf24 50%, #3b82f6 50%) !important;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-900 to-blue-900 min-h-screen text-white">
+    
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-2">🗺️ A* Search Algorithm</h1>
+            <p class="text-xl">食物配送路徑優化 | Food Delivery Route Optimization</p>
+            <p class="text-lg mt-2">
+                <span class="font-bold">故事 Story:</span> 
+                幫助Sister Roxanne找到從慈濟會所到獵人角的最短路徑<br>
+                Help Sister Roxanne find the shortest path from Tzu Chi office to Hunters Point
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Left: Game Board -->
+            <div class="bg-white/10 p-6 rounded-lg backdrop-blur">
+                <h2 class="text-2xl font-bold mb-4">
+                    🎮 你的路徑 Your Path
+                </h2>
+                
+                <div id="instructions" class="mb-4 p-4 bg-blue-500/20 rounded">
+                    <p class="font-bold">遊戲說明 Game Instructions:</p>
+                    <ol class="list-decimal list-inside text-sm space-y-1">
+                        <li>點擊格子選擇你的路徑 | Click cells to choose your path</li>
+                        <li>從綠色🏢(起點)到紅色🎯(終點) | From green 🏢 (start) to red 🎯 (goal)</li>
+                        <li>只能往上下左右移動 | Only move up/down/left/right</li>
+                        <li>完成後點擊"提交路徑"比較結果 | Click "Submit Path" to compare</li>
+                    </ol>
+                </div>
+
+                <div id="game-board" class="inline-block bg-white/20 p-4 rounded-lg mb-4"></div>
+                
+                <div class="space-y-2">
+                    <button id="reset-btn" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg transition">
+                        🔄 重新開始 Reset
+                    </button>
+                    <button id="submit-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition">
+                        ✅ 提交路徑 & 執行AI | Submit Path & Run AI
+                    </button>
+                    <button id="undo-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition">
+                        ↩️ 撤銷上一步 Undo
+                    </button>
+                </div>
+
+                <div id="human-stats" class="mt-4 p-4 bg-yellow-500/20 rounded-lg">
+                    <p class="font-bold">你的統計 Your Stats:</p>
+                    <p>路徑長度 Path Length: <span id="human-length" class="text-2xl font-bold">1</span> 步 steps</p>
+                    <p>當前位置 Current: <span id="human-current" class="font-mono">(0, 0)</span></p>
+                </div>
+            </div>
+
+            <!-- Right: AI Results & Comparison -->
+            <div class="bg-white/10 p-6 rounded-lg backdrop-blur">
+                <h2 class="text-2xl font-bold mb-4">
+                    🤖 AI 最優解 Optimal Solution
+                </h2>
+                
+                <div id="waiting-message" class="mb-4 p-4 bg-purple-500/20 rounded-lg">
+                    <p class="text-center text-lg">
+                        ⏳ 等待你完成路徑...<br>
+                        Waiting for you to complete your path...
+                    </p>
+                </div>
+
+                <div id="ai-results" class="mb-4 p-4 bg-blue-500/20 rounded-lg hidden">
+                    <p class="font-bold text-green-400 text-xl">✅ A* Complete!</p>
+                    <div class="mt-2 space-y-1">
+                        <p>路徑長度 Path Length: <span id="ai-length" class="text-2xl font-bold">-</span> 步 steps</p>
+                        <p>節點探索 Nodes Explored: <span id="ai-nodes" class="text-xl font-bold">-</span> 個 nodes</p>
+                        <p>最佳路徑 Optimal: <span id="ai-optimal" class="text-green-400 font-bold">Yes ✓</span></p>
+                    </div>
+                </div>
+
+                <div id="comparison" class="mb-4 p-4 bg-purple-500/20 rounded-lg hidden">
+                    <p class="font-bold text-2xl mb-3">📊 Human vs AI Comparison</p>
+                    <div class="space-y-2">
+                        <div class="text-center">
+                            <p class="text-sm">你的效率 Your Efficiency:</p>
+                            <p id="efficiency" class="text-5xl font-bold text-yellow-300">-</p>
+                        </div>
+                        <p>步數差距 Step Difference: <span id="step-diff" class="text-xl font-bold">-</span></p>
+                        <p id="efficiency-message" class="text-xl font-bold text-center mt-2"></p>
+                    </div>
+                </div>
+
+                <div class="mb-4 p-4 bg-blue-500/20 rounded-lg">
+                    <p class="font-bold mb-2">💡 Algorithm Insight:</p>
+                    <div class="text-sm space-y-1">
+                        <p>• A* 使用曼哈頓距離作為啟發式函數</p>
+                        <p>• A* uses Manhattan distance as heuristic</p>
+                        <p class="font-mono">f(n) = g(n) + h(n)</p>
+                        <p>• 保證找到最優路徑 | Guarantees optimal path</p>
+                    </div>
+                </div>
+
+                <div id="console-output" class="mt-4 p-4 bg-black/50 rounded-lg font-mono text-xs overflow-auto max-h-64">
+                    <p class="text-green-400 font-bold">Console Output:</p>
+                    <div id="console-log"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="text-center mt-8">
+            <a href="index.html" class="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-bold py-3 px-8 rounded-full transition inline-block">
+                ← 返回主選單 Back to Main Menu
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // GAME STATE
+        // ============================================================================
+        const GRID_SIZE = 8;
+        let humanPath = [];
+        let aiPath = [];
+        let gameBoard = [];
+        let pyodide = null;
+
+        const START = {x: 0, y: 0};
+        const GOAL = {x: 7, y: 7};
+
+        // ============================================================================
+        // INITIALIZE PYODIDE
+        // ============================================================================
+        async function initPyodide() {
+            console.log("Loading Pyodide...");
+            logConsole("⏳ Loading Python environment...");
+            logConsole("正在載入Python環境...");
+            
+            pyodide = await loadPyodide();
+            
+            await pyodide.runPythonAsync(`
+import heapq
+from typing import List, Tuple, Dict
+
+def manhattan_distance(pos1: Tuple[int, int], pos2: Tuple[int, int]) -> int:
+    """Calculate Manhattan distance between two positions"""
+    return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
+
+def a_star_search(start: Tuple[int, int], goal: Tuple[int, int], grid_size: int = 8):
+    """
+    A* pathfinding algorithm
+    Returns optimal path with statistics
+    """
+    
+    def get_neighbors(pos):
+        x, y = pos
+        neighbors = []
+        for dx, dy in [(0,1), (1,0), (0,-1), (-1,0)]:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < grid_size and 0 <= ny < grid_size:
+                neighbors.append((nx, ny))
+        return neighbors
+    
+    # Initialize data structures
+    open_set = []
+    heapq.heappush(open_set, (0, start))
+    
+    came_from = {}
+    g_cost = {start: 0}
+    
+    nodes_explored = 0
+    
+    while open_set:
+        current_f, current = heapq.heappop(open_set)
+        nodes_explored += 1
+        
+        # Goal reached
+        if current == goal:
+            # Reconstruct path
+            path = []
+            while current in came_from:
+                path.append(current)
+                current = came_from[current]
+            path.append(start)
+            path.reverse()
+            
+            return {
+                'path': path,
+                'length': len(path),
+                'nodes_explored': nodes_explored,
+                'optimal': True
+            }
+        
+        # Explore neighbors
+        for neighbor in get_neighbors(current):
+            tentative_g = g_cost[current] + 1
+            
+            if neighbor not in g_cost or tentative_g < g_cost[neighbor]:
+                came_from[neighbor] = current
+                g_cost[neighbor] = tentative_g
+                f_cost = tentative_g + manhattan_distance(neighbor, goal)
+                heapq.heappush(open_set, (f_cost, neighbor))
+    
+    return None
+
+def run_astar(start_x, start_y, goal_x, goal_y, grid_size=8):
+    """Wrapper function for easy calling"""
+    result = a_star_search((start_x, start_y), (goal_x, goal_y), grid_size)
+    return result
+            `);
+            
+            console.log("Pyodide loaded!");
+            logConsole("✅ Python environment ready!");
+            logConsole("✅ Python環境準備完成！");
+        }
+
+        // ============================================================================
+        // UI FUNCTIONS
+        // ============================================================================
+        function createBoard() {
+            const board = document.getElementById('game-board');
+            board.innerHTML = '';
+            board.style.display = 'grid';
+            board.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 50px)`;
+            board.style.gap = '2px';
+            
+            gameBoard = [];
+            
+            for (let y = 0; y < GRID_SIZE; y++) {
+                gameBoard[y] = [];
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    
+                    if (x === START.x && y === START.y) {
+                        cell.classList.add('cell-start');
+                        cell.textContent = '🏢';
+                        humanPath.push({x, y});
+                    } else if (x === GOAL.x && y === GOAL.y) {
+                        cell.classList.add('cell-goal');
+                        cell.textContent = '🎯';
+                    }
+                    
+                    cell.addEventListener('click', () => handleCellClick(x, y));
+                    board.appendChild(cell);
+                    gameBoard[y][x] = cell;
+                }
+            }
+            
+            updateHumanStats();
+        }
+
+        function handleCellClick(x, y) {
+            // Can't click start or goal
+            if ((x === START.x && y === START.y) || (x === GOAL.x && y === GOAL.y)) {
+                return;
+            }
+            
+            // Must be adjacent to last position
+            if (humanPath.length > 0) {
+                const last = humanPath[humanPath.length - 1];
+                const distance = Math.abs(x - last.x) + Math.abs(y - last.y);
+                
+                if (distance !== 1) {
+                    alert('只能移動到相鄰格子！\nCan only move to adjacent cells!');
+                    return;
+                }
+            }
+            
+            // Check if already in path
+            const inPath = humanPath.some(p => p.x === x && p.y === y);
+            if (inPath) {
+                alert('這個格子已經在路徑中了！\nThis cell is already in your path!');
+                return;
+            }
+            
+            // Add to path
+            humanPath.push({x, y});
+            gameBoard[y][x].classList.add('cell-human-path');
+            gameBoard[y][x].textContent = humanPath.length - 1;
+            
+            updateHumanStats();
+            logConsole(`Step ${humanPath.length - 1}: (${x}, ${y})`);
+            
+            // Check if reached goal
+            if (x === GOAL.x && y === GOAL.y) {
+                logConsole('🎉 你到達終點了！You reached the goal!');
+                logConsole('現在可以提交路徑比較結果！Click Submit to compare!');
+            }
+        }
+
+        function updateHumanStats() {
+            document.getElementById('human-length').textContent = humanPath.length;
+            if (humanPath.length > 0) {
+                const last = humanPath[humanPath.length - 1];
+                document.getElementById('human-current').textContent = `(${last.x}, ${last.y})`;
+            }
+        }
+
+        function resetGame() {
+            humanPath = [{x: START.x, y: START.y}];
+            aiPath = [];
+            createBoard();
+            document.getElementById('ai-results').classList.add('hidden');
+            document.getElementById('comparison').classList.add('hidden');
+            document.getElementById('waiting-message').classList.remove('hidden');
+            document.getElementById('console-log').innerHTML = '';
+            logConsole("🔄 遊戲重置 Game Reset");
+            logConsole("開始新的嘗試！Start new attempt!");
+        }
+
+        function undoLastStep() {
+            if (humanPath.length <= 1) {
+                alert('不能撤銷起點！\nCannot undo start position!');
+                return;
+            }
+            
+            const removed = humanPath.pop();
+            const cell = gameBoard[removed.y][removed.x];
+            cell.classList.remove('cell-human-path');
+            cell.textContent = '';
+            
+            updateHumanStats();
+            logConsole(`↩️ Undo: (${removed.x}, ${removed.y})`);
+        }
+
+        async function runAIAndCompare() {
+            if (humanPath[humanPath.length - 1].x !== GOAL.x || 
+                humanPath[humanPath.length - 1].y !== GOAL.y) {
+                alert('請先到達終點再提交！\nPlease reach the goal first!');
+                return;
+            }
+            
+            document.getElementById('waiting-message').classList.add('hidden');
+            logConsole("\n🤖 執行 A* 算法... Running A* Algorithm...");
+            
+            // Run A* through Pyodide
+            const result = await pyodide.runPythonAsync(`
+run_astar(${START.x}, ${START.y}, ${GOAL.x}, ${GOAL.y}, ${GRID_SIZE})
+            `);
+            
+            const aiResult = result.toJs({dict_converter: Object.fromEntries});
+            aiPath = aiResult.path.map(p => ({x: p[0], y: p[1]}));
+            
+            logConsole(`✅ A* Complete! 路徑長度: ${aiResult.length}`);
+            logConsole(`Nodes explored: ${aiResult.nodes_explored}`);
+            
+            // Display AI path
+            aiPath.forEach((pos, idx) => {
+                if (idx === 0 || (pos.x === GOAL.x && pos.y === GOAL.y)) return;
+                
+                const cell = gameBoard[pos.y][pos.x];
+                if (cell.classList.contains('cell-human-path')) {
+                    cell.classList.add('cell-both-path');
+                    cell.textContent = '✓';
+                } else {
+                    cell.classList.add('cell-ai-path');
+                    cell.textContent = 'AI';
+                }
+            });
+            
+            // Show results
+            document.getElementById('ai-results').classList.remove('hidden');
+            document.getElementById('ai-length').textContent = aiResult.length;
+            document.getElementById('ai-nodes').textContent = aiResult.nodes_explored;
+            
+            // Calculate comparison
+            const humanLength = humanPath.length;
+            const aiLength = aiResult.length;
+            const efficiency = Math.round((aiLength / humanLength) * 100);
+            
+            document.getElementById('comparison').classList.remove('hidden');
+            document.getElementById('efficiency').textContent = efficiency + '%';
+            document.getElementById('step-diff').textContent = `${humanLength - aiLength} steps`;
+            
+            let message = '';
+            if (efficiency === 100) {
+                message = '🏆 完美！你找到了最優路徑！<br>Perfect! You found the optimal path!';
+            } else if (efficiency >= 90) {
+                message = '🌟 太棒了！非常接近最優解！<br>Excellent! Very close to optimal!';
+            } else if (efficiency >= 80) {
+                message = '👍 很好！接近最優解！<br>Great! Close to optimal!';
+            } else {
+                message = '💡 繼續努力！試試能否更短？<br>Keep trying! Can you find a shorter path?';
+            }
+            document.getElementById('efficiency-message').innerHTML = message;
+            
+            logConsole(`\n📊 Comparison 比較結果:`);
+            logConsole(`Your path 你的路徑: ${humanLength} steps`);
+            logConsole(`AI optimal AI最優: ${aiLength} steps`);
+            logConsole(`Efficiency 效率: ${efficiency}%`);
+        }
+
+        function logConsole(message) {
+            const log = document.getElementById('console-log');
+            const p = document.createElement('p');
+            p.textContent = message;
+            p.className = 'mb-1';
+            log.appendChild(p);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // ============================================================================
+        // EVENT LISTENERS
+        // ============================================================================
+        document.getElementById('reset-btn').addEventListener('click', resetGame);
+        document.getElementById('submit-btn').addEventListener('click', runAIAndCompare);
+        document.getElementById('undo-btn').addEventListener('click', undoLastStep);
+
+        // ============================================================================
+        // INITIALIZE
+        // ============================================================================
+        window.addEventListener('load', async () => {
+            createBoard();
+            await initPyodide();
+        });
+    </script>
+</body>
+</html>
