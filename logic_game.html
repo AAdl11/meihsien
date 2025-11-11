@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jing Si Aphorisms - Forward Chaining Logic Game</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .subtitle {
+      font-size: 1.2em;
+      opacity: 0.9;
+    }
+
+    .algorithm-info {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .algorithm-info h3 {
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+
+    .algorithm-info p {
+      color: #2c3e50;
+      line-height: 1.8;
+      margin: 5px 0;
+    }
+
+    .game-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+
+    .panel h2 {
+      color: #667eea;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+    }
+
+    .scenario-card {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+      border-left: 5px solid #667eea;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .scenario-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .scenario-card h3 {
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+
+    .scenario-card p {
+      color: #2c3e50;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .emotion-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .emotion-btn {
+      background: white;
+      border: 2px solid #667eea;
+      padding: 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 1em;
+      color: #667eea;
+      font-weight: bold;
+    }
+
+    .emotion-btn:hover {
+      background: #667eea;
+      color: white;
+      transform: scale(1.05);
+    }
+
+    .inference-log {
+      background: #2c3e50;
+      color: #2ecc71;
+      padding: 20px;
+      border-radius: 10px;
+      font-family: 'Courier New', monospace;
+      max-height: 500px;
+      overflow-y: auto;
+      margin-top: 20px;
+    }
+
+    .inference-log p {
+      margin: 8px 0;
+      line-height: 1.6;
+    }
+
+    .iteration-header {
+      color: #3498db;
+      font-weight: bold;
+      font-size: 1.1em;
+      margin-top: 15px;
+      border-top: 1px solid #34495e;
+      padding-top: 10px;
+    }
+
+    .rule-fired {
+      color: #e74c3c;
+      margin-left: 20px;
+    }
+
+    .fact-added {
+      color: #2ecc71;
+      margin-left: 40px;
+    }
+
+    .aphorism-display {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 25px;
+      border-radius: 15px;
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .aphorism-chinese {
+      font-size: 1.8em;
+      font-weight: bold;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .aphorism-english {
+      font-size: 1.2em;
+      font-style: italic;
+      margin-bottom: 15px;
+      opacity: 0.9;
+    }
+
+    .aphorism-explanation {
+      font-size: 1em;
+      line-height: 1.6;
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 10px;
+      text-align: left;
+    }
+
+    .knowledge-base {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
+    .knowledge-base h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+
+    .facts-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .fact-tag {
+      background: #667eea;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 0.9em;
+    }
+
+    .control-buttons {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      padding: 15px 30px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: bold;
+      flex: 1;
+    }
+
+    .btn-reset {
+      background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%);
+      color: white;
+    }
+
+    .btn-back {
+      background: linear-gradient(135deg, #e91e63 0%, #f06292 100%);
+      color: white;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 1000px) {
+      .game-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Background Music -->
+  <audio id="bgMusic" loop>
+    <source src="music/stage2.mp3" type="audio/mpeg">
+  </audio>
+
+  <audio id="successSound" preload="auto">
+    <source src="music/finale.mp3" type="audio/mpeg">
+  </audio>
+
+  <div class="container">
+    <div class="header">
+      <h1>💭 靜思語推理遊戲</h1>
+      <p class="subtitle">Jing Si Aphorisms - Forward Chaining Logic Engine</p>
+    </div>
+
+    <div class="algorithm-info">
+      <h3>⚙️ Forward Chaining Algorithm</h3>
+      <p><strong>Type:</strong> Data-driven inference | Sound & Complete</p>
+      <p><strong>Complexity:</strong> O(n²) where n = number of rules</p>
+      <p><strong>Process:</strong> Start with facts → Fire rules → Add conclusions → Repeat until fixed point</p>
+      <p><strong>Logic:</strong> Modus Ponens: IF (P₁ AND P₂ AND ... AND Pₙ) THEN Q</p>
+    </div>
+
+    <div class="game-layout">
+      <!-- Left Panel: Scenarios -->
+      <div class="panel">
+        <h2>📖 志工場景 Volunteer Scenarios</h2>
+        
+        <div class="scenario-card" onclick="game.selectScenario(1)">
+          <h3>Scenario 1: Food Distribution Crisis</h3>
+          <p>你需要在2小時內為50個家庭準備食物包，但只有3位志工協助。</p>
+          <p><em>You need to prepare food packages for 50 families in 2 hours with only 3 volunteers.</em></p>
+          <p style="color: #e74c3c; font-weight: bold;">工作量龐大，感覺難以完成...</p>
+          <div class="emotion-options" onclick="event.stopPropagation()">
+            <button class="emotion-btn" onclick="game.chooseEmotion(1, 'overwhelmed')">😰 Overwhelmed</button>
+            <button class="emotion-btn" onclick="game.chooseEmotion(1, 'confident')">😊 Confident</button>
+            <button class="emotion-btn" onclick="game.chooseEmotion(1, 'anxious')">😟 Anxious</button>
+            <button class="emotion-btn" onclick="game.chooseEmotion(1, 'neutral')">😐 Neutral</button>
+          </div>
+        </div>
+
+        <div class="scenario-card" onclick="game.selectScenario(2)">
+          <h3>Scenario 2: Marathon Volunteer Day</h3>
+          <p>已經連續服務6小時，身體很疲累，但還有最後一批家庭需要送餐。</p>
+          <p><em>You've been serving for 6 hours straight, physically exhausted, but there's one more delivery.</em></p>
+          <p style="color: #e74c3c; font-weight: bold;">該繼續還是休息？</p>
+          <div class="emotion-options" onclick="event.stopPropagation()">
+            <button class="emotion-btn" onclick="game.chooseEmotion(2, 'tired')">😫 Tired</button>
+            <button class="emotion-btn" onclick="game.chooseEmotion(2, 'continue')">💪 Want to Continue</button>
+            <button class="emotion-btn" onclick="game.chooseEmotion(2, 'uncertain')">🤔 Uncertain</button>
+            <button class="emotion-btn" onclick="game.chooseEmotion(2, 'motivated')">🔥 Motivated</button>
+          </div>
+        </div>
+
+        <div class="scenario-card" onclick="game.selectScenario(3)">
+          <h3>Scenario 3: Unexpected Obstacle</h3>
+          <p>活動當天突然下大雨，很多志工無法到達，需要重新規劃。</p>
+          <p><em>Heavy rain on event day, many volunteers can't make it, need to replanning.</em></p>
+          <p style="color: #e74c3c; font-weight: bold;">外在環境突變，如何應對？</p>
+          <div class="emotion-options" onclick="event.stopPropagation()">
+            <button class="emotion-btn" onclick="game.chooseEmotion(3, 'panicked')">😱 Panicked</button>
+            <button class="emotion-btn" onclick="game.chooseEmotion(3, 'uncertain')">🤔 Uncertain</button>
+            <button class="emotion-btn" onclick="game.chooseEmotion(3, 'adaptable')">🎯 Adaptable</button>
+            <button class="emotion-btn" onclick="game.chooseEmotion(3, 'stressed')">😓 Stressed</button>
+          </div>
+        </div>
+
+        <div class="control-buttons">
+          <button class="btn btn-reset" onclick="game.reset()">🔄 Reset Game</button>
+          <button class="btn btn-back" onclick="game.goBack()">← Back to Menu</button>
+        </div>
+      </div>
+
+      <!-- Right Panel: Inference Engine -->
+      <div class="panel">
+        <h2>🧠 推理引擎 Inference Engine</h2>
+
+        <div class="knowledge-base">
+          <h3>💾 Knowledge Base (Current Facts):</h3>
+          <div class="facts-list" id="factsList">
+            <div class="fact-tag">Ready to start...</div>
+          </div>
+        </div>
+
+        <div class="inference-log" id="inferenceLog">
+          <p style="color: #3498db;">💡 Forward Chaining Inference Engine Ready</p>
+          <p style="color: #95a5a6;">Select a scenario and emotion to start reasoning...</p>
+        </div>
+
+        <div class="aphorism-display hidden" id="aphorismDisplay">
+          <div class="aphorism-chinese" id="aphorismChinese">靜思語</div>
+          <div class="aphorism-english" id="aphorismEnglish">Jing Si Aphorism</div>
+          <div class="aphorism-explanation" id="aphorismExplanation">智慧指引...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Play background music
+    const bgMusic = document.getElementById('bgMusic');
+    bgMusic.volume = 0.3;
+    bgMusic.play().catch(e => {
+      document.addEventListener('click', () => {
+        bgMusic.play().catch(() => {});
+      }, { once: true });
+    });
+
+    const successSound = document.getElementById('successSound');
+
+    // =============================================================================
+    // FORWARD CHAINING INFERENCE ENGINE
+    // =============================================================================
+    
+    class Rule {
+      constructor(premises, conclusion, aphorism) {
+        this.premises = premises;
+        this.conclusion = conclusion;
+        this.aphorism = aphorism;
+      }
+
+      canFire(facts) {
+        return this.premises.every(premise => facts.has(premise));
+      }
+
+      toString() {
+        return `IF (${this.premises.join(' AND ')}) THEN ${this.conclusion}`;
+      }
+    }
+
+    class ForwardChainingEngine {
+      constructor() {
+        this.facts = new Set();
+        this.rules = [];
+        this.inferenceLog = [];
+        this.loadJingSiRules();
+      }
+
+      loadJingSiRules() {
+        // Rule 1
+        this.rules.push(new Rule(
+          ['feeling_overwhelmed', 'many_tasks'],
+          'need_calm_mind',
+          {
+            chinese: '心靜如水，不受波動。',
+            english: 'Calm mind like water, undisturbed by waves.',
+            explanation: '當任務繁重時，保持內心平靜是關鍵。面對壓力時，先讓心安定下來，才能清楚思考。深呼吸，專注當下任務，一次解決一件事。\n\nWhen tasks are overwhelming, maintaining inner calm is key. Face pressure by settling your mind first, then think clearly. Take deep breaths, focus on present tasks, solve one thing at a time.'
+          }
+        ));
+
+        // Rule 2
+        this.rules.push(new Rule(
+          ['feeling_tired', 'want_continue'],
+          'apply_willing_heart',
+          {
+            chinese: '甘願做，歡喜受。',
+            english: 'Willing to do, happy to receive.',
+            explanation: '身體疲累時，用歡喜心轉念。付出不是負擔，而是福報。提醒自己助人的意義，感恩有能力付出。\n\nWhen physically tired, transform with a joyful heart. Giving is not a burden, but a blessing. Remind yourself of the meaning of helping others, be grateful for the ability to give.'
+          }
+        ));
+
+        // Rule 3
+        this.rules.push(new Rule(
+          ['feeling_uncertain', 'external_difficulty'],
+          'transform_perspective',
+          {
+            chinese: '心能轉境，境隨心轉。',
+            english: 'The mind shapes circumstances.',
+            explanation: '困難的環境可以通過轉念改變。改變想法，就能改變感受。尋找困境中的學習機會，用正面態度面對挑戰。\n\nDifficult situations can be changed through mindset transformation. Change your thoughts, change your feelings. Find learning opportunities in adversity, face challenges with positive attitude.'
+          }
+        ));
+
+        // Rule 4
+        this.rules.push(new Rule(
+          ['feeling_anxious', 'time_pressure'],
+          'focus_present_moment',
+          {
+            chinese: '把握時間，珍惜空間，感恩尊重愛。',
+            english: 'Seize the time, cherish the space.',
+            explanation: '焦慮源於過度擔憂未來。專注當下，就不會被焦慮困擾。列出今天必須完成的事，專注做好當下這一件。\n\nAnxiety comes from over-worrying about the future. Focus on the present, and anxiety won\'t trouble you. List what must be done today, focus on doing the current task well.'
+          }
+        ));
+
+        // Rule 5
+        this.rules.push(new Rule(
+          ['need_calm_mind', 'focus_present_moment'],
+          'can_take_effective_action',
+          {
+            chinese: '靜中有定，動中有慧。',
+            english: 'Stability in stillness, wisdom in action.',
+            explanation: '當內心平靜且專注當下，就能採取有效行動。先靜心，再行動。做決定前，確保心是平靜的。\n\nWhen your mind is calm and focused on the present, you can take effective action. Calm your mind first, then act. Before making decisions, ensure your mind is peaceful.'
+          }
+        ));
+
+        // Rule 6
+        this.rules.push(new Rule(
+          ['apply_willing_heart', 'transform_perspective'],
+          'sustained_volunteer_motivation',
+          {
+            chinese: '付出無所求，還要說感恩。',
+            english: 'Give without expecting, and still say thanks.',
+            explanation: '結合甘願做與轉念，能夠長期持續志工付出。每次服務後，反思學到什麼，感謝這個機會。\n\nCombining willing heart with perspective transformation enables sustained volunteer commitment. After each service, reflect on what you learned, be thankful for the opportunity.'
+          }
+        ));
+      }
+
+      tell(fact) {
+        this.facts.add(fact);
+        this.log(`💡 Added fact: ${fact}`);
+      }
+
+      forwardChain() {
+        let iteration = 0;
+        let inferred = true;
+        const allInferences = [];
+
+        this.log('🧠 Starting Forward Chaining...\n');
+
+        while (inferred && iteration < 10) {
+          iteration++;
+          inferred = false;
+
+          this.log(`\n${'─'.repeat(50)}`);
+          this.log(`⚙️ Iteration ${iteration}`);
+          this.log(`${'─'.repeat(50)}`);
+          this.log(`Current Facts: [${Array.from(this.facts).join(', ')}]\n`);
+
+          for (const rule of this.rules) {
+            if (rule.canFire(this.facts) && !this.facts.has(rule.conclusion)) {
+              this.facts.add(rule.conclusion);
+              inferred = true;
+
+              this.log(`🔥 Rule Fired: ${rule.toString()}`, 'rule-fired');
+              this.log(`   ✅ Inferred: ${rule.conclusion}`, 'fact-added');
+              this.log(`   💙 Aphorism: ${rule.aphorism.chinese}`, 'fact-added');
+
+              allInferences.push({
+                iteration,
+                rule: rule.toString(),
+                conclusion: rule.conclusion,
+                aphorism: rule.aphorism
+              });
+            }
+          }
+
+          if (inferred) {
+            this.updateDisplay();
+          }
+        }
+
+        if (!inferred) {
+          this.log(`\n✅ Fixed point reached after ${iteration} iterations`);
+          this.log('   No more facts can be inferred');
+        }
+
+        return allInferences;
+      }
+
+      log(message, className = '') {
+        this.inferenceLog.push({ message, className });
+      }
+
+      updateDisplay() {
+        const logElement = document.getElementById('inferenceLog');
+        logElement.innerHTML = this.inferenceLog.map(item => 
+          `<p class="${item.className}">${item.message}</p>`
+        ).join('');
+        logElement.scrollTop = logElement.scrollHeight;
+
+        const factsElement = document.getElementById('factsList');
+        factsElement.innerHTML = Array.from(this.facts)
+          .map(fact => `<div class="fact-tag">${fact.replace(/_/g, ' ')}</div>`)
+          .join('');
+      }
+
+      reset() {
+        this.facts.clear();
+        this.inferenceLog = [];
+        this.log('💡 Forward Chaining Inference Engine Ready');
+        this.log('Select a scenario and emotion to start reasoning...');
+        this.updateDisplay();
+      }
+    }
+
+    // =============================================================================
+    // GAME CONTROLLER
+    // =============================================================================
+
+    const game = {
+      engine: new ForwardChainingEngine(),
+      currentScenario: null,
+
+      scenarios: {
+        1: {
+          facts: {
+            'overwhelmed': ['feeling_overwhelmed', 'many_tasks', 'time_pressure'],
+            'confident': ['feeling_confident', 'many_tasks'],
+            'anxious': ['feeling_anxious', 'time_pressure', 'many_tasks'],
+            'neutral': ['feeling_neutral', 'many_tasks']
+          }
+        },
+        2: {
+          facts: {
+            'tired': ['feeling_tired', 'physical_exhaustion'],
+            'continue': ['feeling_tired', 'want_continue'],
+            'uncertain': ['feeling_uncertain', 'want_continue'],
+            'motivated': ['feeling_motivated', 'want_continue']
+          }
+        },
+        3: {
+          facts: {
+            'panicked': ['feeling_panicked', 'external_difficulty'],
+            'uncertain': ['feeling_uncertain', 'external_difficulty'],
+            'adaptable': ['feeling_adaptable', 'external_difficulty'],
+            'stressed': ['feeling_stressed', 'external_difficulty', 'time_pressure']
+          }
+        }
+      },
+
+      selectScenario(scenarioId) {
+        this.currentScenario = scenarioId;
+        this.engine.reset();
+        this.engine.log(`\n📖 Selected Scenario ${scenarioId}`);
+        this.engine.log('Choose your emotional response...\n');
+        this.engine.updateDisplay();
+      },
+
+      chooseEmotion(scenarioId, emotion) {
+        if (!this.currentScenario) {
+          this.selectScenario(scenarioId);
+        }
+
+        this.engine.reset();
+        this.engine.log(`\n📖 Scenario ${scenarioId}: ${emotion.toUpperCase()}`);
+        this.engine.log('==================================================\n');
+
+        const facts = this.scenarios[scenarioId].facts[emotion];
+        facts.forEach(fact => this.engine.tell(fact));
+
+        setTimeout(() => {
+          const inferences = this.engine.forwardChain();
+          
+          if (inferences.length > 0) {
+            const lastInference = inferences[inferences.length - 1];
+            this.showAphorism(lastInference.aphorism);
+            successSound.play().catch(() => {});
+          }
+        }, 500);
+      },
+
+      showAphorism(aphorism) {
+        const display = document.getElementById('aphorismDisplay');
+        document.getElementById('aphorismChinese').textContent = aphorism.chinese;
+        document.getElementById('aphorismEnglish').textContent = aphorism.english;
+        document.getElementById('aphorismExplanation').textContent = aphorism.explanation;
+        display.classList.remove('hidden');
+      },
+
+      reset() {
+        this.currentScenario = null;
+        this.engine.reset();
+        document.getElementById('aphorismDisplay').classList.add('hidden');
+      },
+
+      goBack() {
+        bgMusic.pause();
+        window.location.href = 'index.html';
+      }
+    };
+
+    game.engine.updateDisplay();
+  </script>
+</body>
+</html>

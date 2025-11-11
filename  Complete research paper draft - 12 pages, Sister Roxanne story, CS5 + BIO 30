@@ -1,0 +1,77 @@
+[33m7a94238[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Add undo feature and redesign obstacle layout for better gameplay
+[33md1a066f[m Improve goal color (lighter gold) and distribute obstacles across grid
+[33m4298b24[m Enhance A* pathfinding visualization with step animation and audio optimization
+[33m3a9f8f0[m Complete rewrite: Pure JavaScript version - No Vue dependency, instant load, all features working
+[33mc2e92a2[m Fix: Goal clickable + stop music overlap + real images
+[33m87d2981[m Add AI demo + original background music
+[33m97492bd[m Ready for Monday demo - A* game fully integrated
+[33m9d1adeb[m feat: Add playable A* Search with bilingual support
+[33mf64750d[m Final corrected version - ready for submission
+[33m6798bf2[m docs: Add Lab 8 summary
+[33ma107cce[m feat: Complete game with audio system
+[33m9fa7510[m docs: Complete research paper draft - 12 pages, Sister Roxanne story, CS5 + BIO 30
+[33m393b29a[m docs: Final README - Sister Roxanne story, CS5 + BIO 30 pathway
+[33md7f3bc5[m docs: Complete Technical Documentation - All 8 algorithms, Sister Roxanne story, CS5 + BIO 30 pathway
+[33m2917519[m fix: Add video play button for browser compatibility
+[33m4683501[m fix: Replace with simplified working version
+[33m0718346[m Update index.html
+[33mecca273[m feat: Complete backend - All 8 AI algorithms
+[33madcde6b[m Remove unused script section from index.html
+[33m996ff52[m Remove music control UI element
+[33md793832[m Remove auto-play music script - fix JSX error
+[33m041ae59[m Improve autoplay music script on page load
+[33m431d1bd[m Fix comment syntax in index.html
+[33m207a5a9[m Update Chinese text for music system in index.html
+[33m16d4ed5[m Remove last HTML comment causing error
+[33m995d20e[m Fix self-closing tags in index.html
+[33m5062946[m Remove HTML comments causing JSX errors
+[33m749a81d[m Fix line break syntax in index.html
+[33m7225f10[m Remove QR Codes section comment from index.html
+[33mb7f04f1[m IAdd music system and QR codes
+[33mb508c8b[m Add compressed music files
+[33m8658a9e[m Add placeholder text file for music files
+[33mbe615de[m Add files via upload
+[33m05fd976[m Delete images/TCSF IG.jpg
+[33ma7d5cca[m Create sudoku-game.html
+[33madb60ff[m Add Sudoku solver algorithm
+[33m8a263a4[m Add all game assets: QR codes, videos, and images
+[33m1bac4ea[m Replace placeholder text with 'temp'
+[33m1cd7641[m Add muted attribute to video element
+[33m4258a99[m Add opening video and all background music
+[33m12097bf[m Fix mobile exit/restart functionality in final stage>Update button labels and exit message
+[33m4aa8446[m Fix: Use same working input as welcome screen
+[33m1fe7ea2[m Simplify smart text input handling
+[33mcf82124[m Implement smart text input for reflection textarea
+[33mbda021b[m Enforce LTR text direction in input fields
+[33mf7da243[m Fix Stage 3 flow + text input direction bugs
+[33med12d5f[m Fix: Resolve backward text input in Stage 5 meditation textarea
+[33m19e01fc[m Stage 3: Added service type selection feature!
+[33m3989788[m Fix queensBoard state loading and save logic
+[33mb02b821[m Refactor conflict checking and update button styles
+[33mab52b4d[m Update print statement from 'Hello' to 'Goodbye'
+[33mfe72874[m Fixed input shake and extended comfort message time to 6 seconds
+[33mecf2c00[m Enhance emotion response handling in Journey Of Kindness
+[33m6d82c92[m Add fade-in animation to WelcomeScreenFix React rendering errors
+[33m13c15ff[m Update game with Stage 1-2 完整版
+[33m2128b14[m Updated game with end state handling
+[33md1e0f80[m Updated index.html with enhanced input handling, menu flow, and persistence
+[33m7c6f376[m Update title and content for Journey of Kindness
+[33m608f5bb[m Rename hunters_point_map.png.png to hunters_point_map.png
+[33m3e181fb[m Rename tzu_chi_logo.svg.svg to tzu_chi_logo
+[33m8b44a18[m Update README.md
+[33m6fac3fc[m Add files via upload
+[33m9fae788[m Update CONTRIBUTING.md
+[33m131d8e0[m Update README.md
+[33maeaac5d[m Update README.md
+[33m8e35813[m Update README.md
+[33m6702f5f[m Create CONTRIBUTING.md
+[33m9e65731[m Update README.md
+[33m3a6a031[m Create README-zh.md
+[33m43af2ae[m Create static.yml
+[33ma36e034[m Create index-zh.html
+[33mc5b77af[m Create index.html
+[33m3c90e78[m Update README.md
+[33md9620da[m Update personal README with project overview and mission
+[33mb3e58b7[m Update and rename README.md to Update personal README with project overview and mission
+[33mfaf11d9[m Update README.md
+[33m2611691[m Initial commit
